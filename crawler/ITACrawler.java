@@ -69,8 +69,11 @@ class ITACrawler {
         WebElement depDateInput = webDriver.findElement(By.id("ita_form_date_DateTextBox_1"));
         WebElement searchButton = webDriver.findElement(By.id("advanced_searchSubmitButton"));
 
+        fromInput.clear();
         fromInput.sendKeys(from);
+        toInput.clear();
         toInput.sendKeys(to);
+        depDateInput.clear();
         depDateInput.sendKeys(depDate);
         //retDateInput.sendKeys("05/26/2014");
         searchButton.submit();
