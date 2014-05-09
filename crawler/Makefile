@@ -1,6 +1,6 @@
 all:
+	javac -cp .:lib/* ITACrawler.java 
 	javac -cp .:lib/xmlrpc-3.1.3/* CrawlerServer.java 
-	javac -cp '.:lib/*' ITACrawler.java 
 
 run_slave_print:
 	java -cp .:lib/xmlrpc-3.1.3/*:lib/* CrawlerServer
