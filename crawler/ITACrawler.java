@@ -27,12 +27,12 @@ import java.net.URL;
 
 class ITACrawler {
 
-	private static WebClient webClient;
-	private static HtmlPage mainPage;
+	private WebClient webClient;
+	private HtmlPage mainPage;
 
-	private static WebDriver webDriver;
+	private WebDriver webDriver;
 
-	private static Function<WebDriver,WebElement> presenceOfElementLocated(final By locator) throws Exception {
+	private Function<WebDriver,WebElement> presenceOfElementLocated(final By locator) throws Exception {
 		return new Function<WebDriver, WebElement>() {
 			@Override
 			public WebElement apply(WebDriver driver) {
@@ -41,71 +41,64 @@ class ITACrawler {
 		};
 	}
 
-	public static void main(String[] args) throws Exception{
+    public ITACrawler() {
+      System.out.println("crawling started");
+      webDriver = new FirefoxDriver(); 
+      System.out.println("firefox opened");
+  }
 
-		System.out.println("crawling started");
-		webDriver = new FirefoxDriver(); 
-		System.out.println("firefox opened");
+  public Object[] checkPrice(String from, String to, String depDate) throws Exception {
+        // Need syncronization
 
-		webDriver.get("http://matrix.itasoftware.com");
-		(new WebDriverWait(webDriver, 48)).until(presenceOfElementLocated(By.id("searchFormsContainer"))); 
+
+      webDriver.get("http://matrix.itasoftware.com");
+      (new WebDriverWait(webDriver, 48)).until(presenceOfElementLocated(By.id("searchFormsContainer"))); 
+
+      WebElement oneWayToggle = webDriver.findElement(By.id("ita_layout_TabContainer_0_tablist_ita_form_SliceForm_1"));
+      oneWayToggle.click();
+      (new WebDriverWait(webDriver, 48)).until(presenceOfElementLocated(By.id("advanced_from2"))); 
+      Thread.sleep(1000);
+        /* // for round-trip
+        WebElement fromInput = webDriver.findElement(By.id("advancedfrom1"));
+        WebElement toInput = webDriver.findElement(By.id("advancedto1"));
+        WebElement depDateInput = webDriver.findElement(By.id("advanced_rtDeparture"));
+        WebElement retDateInput = webDriver.findElement(By.id("advanced_rtReturn"));
+        */
+        WebElement fromInput = webDriver.findElement(By.id("advanced_from2"));
+        WebElement toInput = webDriver.findElement(By.id("advanced_to2"));
+        WebElement depDateInput = webDriver.findElement(By.id("ita_form_date_DateTextBox_1"));
+        WebElement searchButton = webDriver.findElement(By.id("advanced_searchSubmitButton"));
+
+        fromInput.sendKeys(from);
+        toInput.sendKeys(to);
+        depDateInput.sendKeys(depDate);
+        //retDateInput.sendKeys("05/26/2014");
+        searchButton.submit();
+
+            //(new WebDriverWait(webDriver, 48)).until(!presenceOfElementLocated(By.id("itaLoadingIcon"))); 
+        (new WebDriverWait(webDriver, 88)).until(presenceOfElementLocated(By.id("sites_matrix_panels_flights_Row_0")));
+        //WebElement cheapestLabel = webDriver.findElement(By.id("ita_form_button_LinkButton_0_label"));
+        WebElement row0 = webDriver.findElement(By.id("sites_matrix_panels_flights_Row_0"));
+        WebElement priceSpan = row0.findElement(By.className("itaPrice"));
+        WebElement carrierSpan = row0.findElement(By.className("itaSolutionCarriers"));
+        WebElement depTimeSpan = row0.findElements(By.className("itaSliceTimes")).get(0);
+        WebElement arrTimeSpan = row0.findElements(By.className("itaSliceTimes")).get(1);
+        WebElement durationTimeSpan = row0.findElement(By.className("itaSliceDuration"));
+
+        Object[] result = new Object[5];
+        result[0] = priceSpan.getText();
+        /*
+        System.out.println("Cheapest price is " + priceSpan.getText());
+        System.out.println("Carrier: " + carrierSpan.getText());
+        System.out.println("Departing at " + depTimeSpan.getText());
+        System.out.println("Arriving at" + arrTimeSpan.getText());
+        System.out.println("Duration" + durationTimeSpan.getText());
+        */
+        return result;
+    }
 
     /*
-		ArrayList<WebElement> inputList = new ArrayList<WebElement>();
-    inputList = (ArrayList<WebElement>) webDriver.findElements(By.tagName("input"));
-
-    int i = 0;
-    for (WebElement e : inputList) {
-    	try {
-    	e.sendKeys("" + i);
-    	//System.out.println(e.getText());
-    	//System.out.println(e.getTagName());
-    } catch (org.openqa.selenium.ElementNotVisibleException exception) {
-    	// do nothing
-    }
-    	i++;
+    public static void main(String[] args) throws Exception{
     }
     */
-
-    WebElement oneWayToggle = webDriver.findElement(By.id("ita_layout_TabContainer_0_tablist_ita_form_SliceForm_1"));
-    oneWayToggle.click();
-    (new WebDriverWait(webDriver, 48)).until(presenceOfElementLocated(By.id("advanced_from2"))); 
-    Thread.sleep(1000);
-    /* // for round-trip
-    WebElement fromInput = webDriver.findElement(By.id("advancedfrom1"));
-    WebElement toInput = webDriver.findElement(By.id("advancedto1"));
-    WebElement depDateInput = webDriver.findElement(By.id("advanced_rtDeparture"));
-    WebElement retDateInput = webDriver.findElement(By.id("advanced_rtReturn"));
-    */
-    WebElement fromInput = webDriver.findElement(By.id("advanced_from2"));
-    WebElement toInput = webDriver.findElement(By.id("advanced_to2"));
-    WebElement depDateInput = webDriver.findElement(By.id("ita_form_date_DateTextBox_1"));
-    WebElement searchButton = webDriver.findElement(By.id("advanced_searchSubmitButton"));
-
-    fromInput.sendKeys("BOS");
-    toInput.sendKeys("CHI");
-    depDateInput.sendKeys("05/04/2014");
-    //retDateInput.sendKeys("05/26/2014");
-    searchButton.submit();
-
-		//(new WebDriverWait(webDriver, 48)).until(!presenceOfElementLocated(By.id("itaLoadingIcon"))); 
-    (new WebDriverWait(webDriver, 88)).until(presenceOfElementLocated(By.id("sites_matrix_panels_flights_Row_0")));
-    //WebElement cheapestLabel = webDriver.findElement(By.id("ita_form_button_LinkButton_0_label"));
-    WebElement row0 = webDriver.findElement(By.id("sites_matrix_panels_flights_Row_0"));
-    WebElement priceSpan = row0.findElement(By.className("itaPrice"));
-    WebElement carrierSpan = row0.findElement(By.className("itaSolutionCarriers"));
-    WebElement depTimeSpan = row0.findElements(By.className("itaSliceTimes")).get(0);
-    WebElement arrTimeSpan = row0.findElements(By.className("itaSliceTimes")).get(1);
-    WebElement durationTimeSpan = row0.findElement(By.className("itaSliceDuration"));
-
-    System.out.println("Cheapest price is " + priceSpan.getText());
-    System.out.println("Carrier: " + carrierSpan.getText());
-    System.out.println("Departing at " + depTimeSpan.getText());
-    System.out.println("Arriving at" + arrTimeSpan.getText());
-    System.out.println("Duration" + durationTimeSpan.getText());
-
-
-
-
-	}
 }
