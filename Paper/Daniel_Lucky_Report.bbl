@@ -1,0 +1,25 @@
+\begin{thebibliography}{2}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Applegate et~al.(2007)Applegate, Bixby, Chvatal, and
+  Cook]{Applegate:2007:TSP:1374811}
+Applegate, David~L., Bixby, Robert~E., Chvatal, Vasek, and Cook, William~J.
+\newblock \emph{The Traveling Salesman Problem: A Computational Study
+  (Princeton Series in Applied Mathematics)}.
+\newblock Princeton University Press, Princeton, NJ, USA, 2007.
+\newblock ISBN 0691129932, 9780691129938.
+
+\bibitem[Balas(1965)]{doi:10.1287/opre.13.4.517}
+Balas, Egon.
+\newblock An additive algorithm for solving linear programs with zero-one
+  variables.
+\newblock \emph{Operations Research}, 13\penalty0 (4):\penalty0 517--546, 1965.
+\newblock \doi{10.1287/opre.13.4.517}.
+\newblock URL
+  \url{http://pubsonline.informs.org/doi/abs/10.1287/opre.13.4.517}.
+
+\end{thebibliography}
