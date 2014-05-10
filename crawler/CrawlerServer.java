@@ -12,8 +12,6 @@ import org.apache.xmlrpc.XmlRpcException;
 
 public class CrawlerServer {
 
-	private static String catalogServerAddr = "";
-
 	private static ITACrawler crawler;
 
     // Starts the server.
@@ -23,7 +21,7 @@ public class CrawlerServer {
 			XmlRpcServer xmlRpcServer;
 			WebServer server = new WebServer(8593);
 			xmlRpcServer = server.getXmlRpcServer();
-			phm.addHandler("CrawlerServer", CrawlerServer.class);
+			phm.addHandler("crawlerServer", CrawlerServer.class);
 			xmlRpcServer.setHandlerMapping(phm);
 			server.start();
 			crawler = new ITACrawler();
@@ -31,7 +29,7 @@ public class CrawlerServer {
 	}
 
 
-  public Object[] checkPrice(String from, String to, String depDate) throws Exception {
+  public Object[] checkPrice(String from, String to, String depDate) {
   	Object[] result;
 		try {
   		result = crawler.checkPrice("BOS", "NYC", "05/29/2014");
@@ -41,9 +39,7 @@ public class CrawlerServer {
   	return result;
 	}
 
-    // Input: CatalogServer hostname. Defaults to local hostname.
 	public static void main(String[] args) {
-		catalogServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost");
 
 		CrawlerServer.startServer();
 		/*
