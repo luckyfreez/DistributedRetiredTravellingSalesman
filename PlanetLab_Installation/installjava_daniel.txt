@@ -1,0 +1,12 @@
+j2re=$1
+
+echo Unzipping/untarring the java file...
+
+tar -zxvf $j2re
+
+echo Now appending stuff to the bash_profile...
+
+echo "PATH=/home/williams_339/jre1.6.0_16/bin:$PATH" >> ~/.bash_profile
+echo "export PATH" >> ~/.bash_profile
+
+source ~/.bash_profile
