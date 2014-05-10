@@ -47,7 +47,7 @@ class ITACrawler {
       System.out.println("firefox opened");
   }
 
-  public Object[] checkPrice(String from, String to, String depDate) throws Exception {
+  public synchronized Object[] checkPrice(String from, String to, String depDate) throws Exception {
         // Need syncronization
 
 

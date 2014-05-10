@@ -31,26 +31,14 @@ public class CrawlerServer {
 	}
 
 
-
-    // Input: item number int. Calls the catalog server to buy a book. Returns false if book is out of stock.
-	public boolean buy(int itemNum) {
-		XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-		XmlRpcClient client = null;
+  public Object[] checkPrice(String from, String to, String depDate) throws Exception {
+  	Object[] result;
 		try {
-			config.setServerURL(new URL(catalogServerAddr + ":8592"));
-			client = new XmlRpcClient();
-			client.setConfig(config);
-		} catch (Exception e) { System.err.println("Problem! "+ e); }
-
-		Object[] params = new Object[2];
-		params[0] = itemNum;
-		params[1] = -1;
-
-		try {
-			Boolean result = (Boolean) client.execute("catalogServer.changeBookStockCount", params);
-			return result;
-		} catch (Exception exception) { System.err.println("CrawlerServer Client: " + exception); }
-		return false;
+  		result = crawler.checkPrice("BOS", "NYC", "05/29/2014");
+  	} catch (Exception e) {
+  		result = checkPrice(from, to, depDate);
+  	}
+  	return result;
 	}
 
     // Input: CatalogServer hostname. Defaults to local hostname.
@@ -58,9 +46,11 @@ public class CrawlerServer {
 		catalogServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost");
 
 		CrawlerServer.startServer();
+		/*
 		try {
   		System.out.println("Price = " + crawler.checkPrice("BOS", "NYC", "05/29/2014")[0]);
   	} catch (Exception e) {
   	}
+  	*/
 	}
 }
