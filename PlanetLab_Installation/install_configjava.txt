@@ -1,0 +1,17 @@
+file=$1
+j2re=$2
+installjava=$3
+echo Starting instalation...
+echo ========================
+for node in `cat $file`
+do
+    echo ========================
+    echo $node 
+    echo Copying J2RE to $node
+    scp -r $j2re williams_339@$node:.
+    echo Copying script installjava
+    scp $installjava williams_339@$node:.
+    echo Entering at $node
+    ssh -x williams_339@$node "echo Installing J2RE at $node; chmod u+x $installjava ; ./$installjava $j2re"
+    echo ========================
+done 
