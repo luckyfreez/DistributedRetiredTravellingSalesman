@@ -94,6 +94,8 @@ class ITACrawler {
         // This is the default result to return (when query fails).
         Object[] result = new Object[] { false, -1, "", "", "" };
         result[0] = true;   // Indicates that the search succeeded.
+        
+        // Get rid of the "$" at the beginning of the priceSpan
         result[1] = priceSpan.getText().substring(1);
         /*
         System.out.println("Cheapest price is " + priceSpan.getText());

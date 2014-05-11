@@ -82,8 +82,8 @@ public class MasterServer {
   	params[1] = to;
   	params[2] = depDate;
 
-  	Object[] result = new Object[5];
-  	result[0] = -1;    // Initialize the default price (Returning this in the end indicating that the search fails).
+    // Initialize the default price (Returning this in the end indicating that the search fails).
+  	Object[] result = new Object[5] { false, -1, "", "", "" };
 
   	try {
   		result = (Object[]) client.execute("crawlerServer.checkPrice", params);
@@ -113,7 +113,7 @@ public class MasterServer {
   public static void checkFlightPrices() {
     while (!flightsToCheckPrice.isEmpty()) {
       Flight f = flightsToCheckPrice.iterator().next();
-      Object[] queryResult = checkPrice("BOS", "NYC", "05/29/2014");
+      Object[] queryResult = checkPrice(f.to, f.from, f.depDate);
       if ((Boolean) queryResult[0]) {
         f.price = Integer.parseInt((String) queryResult[1]);
         flightsToCheckPrice.remove(f);
@@ -132,7 +132,7 @@ public class MasterServer {
     for (Flight f : flights) {
       System.out.println(f);
     }
-    
+
     // Do the integer programming based on the data in the arraylist flights.
 
 	}
