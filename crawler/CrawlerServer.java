@@ -21,7 +21,7 @@ public class CrawlerServer {
 		try {
 			PropertyHandlerMapping phm = new PropertyHandlerMapping();
 			XmlRpcServer xmlRpcServer;
-			WebServer server = new WebServer(8593);
+			WebServer server = new WebServer(8001);
 			xmlRpcServer = server.getXmlRpcServer();
 			phm.addHandler("crawlerServer", CrawlerServer.class);
 			xmlRpcServer.setHandlerMapping(phm);

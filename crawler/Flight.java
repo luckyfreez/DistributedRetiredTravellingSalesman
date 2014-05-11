@@ -15,7 +15,6 @@ public class Flight {
  	}
 
  	public String toString() {
- 		return from + "->" + to + ", " +
- 		    (price != -1 ? "$" + price : "price not known");
+ 		return from + "->" + to + " on " + depDate + ", " + (price != -1 ? "$" + price : "price not known");
  	}
 }

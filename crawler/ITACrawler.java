@@ -67,7 +67,9 @@ class ITACrawler {
         */
         WebElement fromInput = webDriver.findElement(By.id("advanced_from2"));
         WebElement toInput = webDriver.findElement(By.id("advanced_to2"));
-        WebElement depDateInput = webDriver.findElement(By.id("ita_form_date_DateTextBox_1"));
+        //WebElement depDateInputs = webDriver.findElements(By.id("ita_form_date_DateTextBox_1"));
+        ArrayList<WebElement> depDateInputs = (ArrayList<WebElement>) webDriver.findElements(By.xpath("//input[matches(@id,'ita_form_date_DateTextBox_.*')]"));
+
         WebElement searchButton = webDriver.findElement(By.id("advanced_searchSubmitButton"));
 
         fromInput.clear();
@@ -75,9 +77,15 @@ class ITACrawler {
         fromInput.sendKeys(Keys.RETURN);
         toInput.clear();
         toInput.sendKeys(to);
-        fromInput.sendKeys(Keys.RETURN);
-        depDateInput.clear();
-        depDateInput.sendKeys(depDate);
+        toInput.sendKeys(Keys.RETURN);
+
+        for (WebElement depDateInput : depDateInputs) {
+            if (depDateInput.isDisplayed()) {
+                depDateInput.clear();
+                depDateInput.sendKeys(depDate);
+                depDateInput.sendKeys(Keys.RETURN);
+            }
+        }
         //retDateInput.sendKeys("05/26/2014");
         searchButton.submit();
 
@@ -94,7 +102,7 @@ class ITACrawler {
         // This is the default result to return (when query fails).
         Object[] result = new Object[] { false, -1, "", "", "" };
         result[0] = true;   // Indicates that the search succeeded.
-        
+
         // Get rid of the "$" at the beginning of the priceSpan
         result[1] = priceSpan.getText().substring(1);
         /*
