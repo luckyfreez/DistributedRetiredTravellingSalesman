@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.HashSet;
+
 // Import for client
 import java.net.URL;
 import org.apache.xmlrpc.*;
@@ -12,6 +15,8 @@ import org.apache.xmlrpc.XmlRpcException;
 
 public class MasterServer {
 
+  public static ArrayList<Flight> flights = new ArrayList<Flight>();
+  public static HashSet<Flight> flightsToCheckPrice = new HashSet<Flight>();
   private static String crawlerServerAddr = "";
     // Starts the server.
 	public static void startServer() {
@@ -90,13 +95,45 @@ public class MasterServer {
   	return result;
   }
 
+  /**
+   * This method gathers all the possible combinations of flights that might be used
+   * in the later integer programming part.
+   * This method only computes the combinations. The price check happens at
+   * checkFlightPrices.
+   */
+  public static void gatherFlights() {
+    Flight flight1 = new Flight("NYC", "SFO", "06/01/2014");
+    flights.add(flight1);
+    flightsToCheckPrice.add(flight1);
+  }
+
+  /**
+   * This method checks all the flight prices.
+   */
+  public static void checkFlightPrices() {
+    while (!flightsToCheckPrice.isEmpty()) {
+      Flight f = flightsToCheckPrice.iterator().next();
+      Object[] queryResult = checkPrice("BOS", "NYC", "05/29/2014");
+      if ((Boolean) queryResult[0]) {
+        f.price = Integer.parseInt((String) queryResult[1]);
+        flightsToCheckPrice.remove(f);
+      }
+    }
+  }
     // Input: crawlerServer hostname. Defaults to local hostname.
 	public static void main(String[] args) {
 		crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost");
 
 		MasterServer.startServer();
 
-		System.out.println("Price = " + checkPrice("BOS", "NYC", "05/29/2014")[1]);
+    gatherFlights();
+    checkFlightPrices();
+
+    for (Flight f : flights) {
+      System.out.println(f);
+    }
+    
+    // Do the integer programming based on the data in the arraylist flights.
 
 	}
 }

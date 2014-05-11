@@ -94,7 +94,7 @@ class ITACrawler {
         // This is the default result to return (when query fails).
         Object[] result = new Object[] { false, -1, "", "", "" };
         result[0] = true;   // Indicates that the search succeeded.
-        result[1] = priceSpan.getText();
+        result[1] = priceSpan.getText().substring(1);
         /*
         System.out.println("Cheapest price is " + priceSpan.getText());
         System.out.println("Carrier: " + carrierSpan.getText());

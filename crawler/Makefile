@@ -1,4 +1,5 @@
 all:
+	javac Flight.java
 	javac -cp .:lib/* ITACrawler.java 
 	javac -cp .:lib/xmlrpc-3.1.3/* CrawlerServer.java 
 	javac -cp .:lib/xmlrpc-3.1.3/* MasterServer.java 
