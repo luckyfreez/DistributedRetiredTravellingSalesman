@@ -32,6 +32,8 @@ class ITACrawler {
 
 	private WebDriver webDriver;
 
+    private boolean idle;
+
 	private Function<WebDriver,WebElement> presenceOfElementLocated(final By locator) throws Exception {
 		return new Function<WebDriver, WebElement>() {
 			@Override
@@ -42,15 +44,14 @@ class ITACrawler {
 	}
 
     public ITACrawler() {
+      idle = false;
       System.out.println("crawling started");
       webDriver = new FirefoxDriver(); 
       System.out.println("firefox opened");
+      idle = true;
   }
 
-  public synchronized Object[] checkPrice(String from, String to, String depDate) throws Exception {
-        // Need syncronization
-
-
+  private synchronized Object[] checkPriceHelper(String from, String to, String depDate) throws Exception {
       webDriver.get("http://matrix.itasoftware.com");
       (new WebDriverWait(webDriver, 48)).until(presenceOfElementLocated(By.id("searchFormsContainer"))); 
 
@@ -71,8 +72,10 @@ class ITACrawler {
 
         fromInput.clear();
         fromInput.sendKeys(from);
+        fromInput.sendKeys(Keys.RETURN);
         toInput.clear();
         toInput.sendKeys(to);
+        fromInput.sendKeys(Keys.RETURN);
         depDateInput.clear();
         depDateInput.sendKeys(depDate);
         //retDateInput.sendKeys("05/26/2014");
@@ -88,8 +91,10 @@ class ITACrawler {
         WebElement arrTimeSpan = row0.findElements(By.className("itaSliceTimes")).get(1);
         WebElement durationTimeSpan = row0.findElement(By.className("itaSliceDuration"));
 
-        Object[] result = new Object[5];
-        result[0] = priceSpan.getText();
+        // This is the default result to return (when query fails).
+        Object[] result = new Object[] { false, -1, "", "", "" };
+        result[0] = true;   // Indicates that the search succeeded.
+        result[1] = priceSpan.getText();
         /*
         System.out.println("Cheapest price is " + priceSpan.getText());
         System.out.println("Carrier: " + carrierSpan.getText());
@@ -100,8 +105,35 @@ class ITACrawler {
         return result;
     }
 
-    /*
-    public static void main(String[] args) throws Exception{
+    private synchronized boolean reserveCrawler() {
+        if (idle) {
+            idle = false;
+            return true;
+        } else {
+            return false;
+        }
     }
-    */
+
+    public Object[] checkPrice(String from, String to, String depDate) {
+        // This is the default result to return (when query fails).
+        Object[] result = new Object[] { false, -1, "", "", "" };
+
+        if (reserveCrawler()) {
+            try {
+                result = checkPriceHelper(from, to, depDate);
+            } catch (Exception e) {
+                System.err.println("ERROR: Crawler cannot check flight " +
+                   from + " -> " + to + " at " + depDate +
+                   "! Exception is " + e);
+            }
+        }
+        idle = true;
+        return result;
+    }
+
+    public static void main(String[] args) throws Exception{
+        ITACrawler crawler = new ITACrawler();
+        //System.out.println("Price = " + crawler.checkPrice("BOS", "NYC", "05/29/2014")[0]);
+
+    }
 }

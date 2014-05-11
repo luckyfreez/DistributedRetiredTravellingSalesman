@@ -14,6 +14,8 @@ public class CrawlerServer {
 
 	private static ITACrawler crawler;
 
+	//private static boolean idle;
+
     // Starts the server.
 	public static void startServer() {
 		try {
@@ -30,18 +32,20 @@ public class CrawlerServer {
 
 
   public Object[] checkPrice(String from, String to, String depDate) {
-  	Object[] result;
-		try {
-  		result = crawler.checkPrice("BOS", "NYC", "05/29/2014");
-  	} catch (Exception e) {
-  		result = checkPrice(from, to, depDate);
-  	}
-  	return result;
+  	return crawler.checkPrice(from, to, depDate);
 	}
+
+	/*
+	public static boolean isIdle() {
+		return idle;
+	}
+	*/
 
 	public static void main(String[] args) {
 
 		CrawlerServer.startServer();
+		//CrawlerServer s = new CrawlerServer();
+		//System.out.println(s.checkPrice("BOS", "NYC", "05/29/2014")[0]);
 		/*
 		try {
   		System.out.println("Price = " + crawler.checkPrice("BOS", "NYC", "05/29/2014")[0]);

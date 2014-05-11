@@ -30,17 +30,47 @@ public class MasterServer {
 	}
 
 
+  private static XmlRpcClient getClient(String urlStr) {
+    XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+    XmlRpcClient client = null;
+    try {
+      config.setServerURL(new URL(urlStr));
+      client = new XmlRpcClient();
+      client.setConfig(config);
+    } catch (Exception e) {
+      System.err.println("ERROR: MasterServer cannot talk to slave at " +
+                         urlStr + "! Exception is "+ e);
+      getClient(urlStr);
+    }
+    return client;
+  }
+
+  /*
+  // Not used for now.
+  private static boolean checkIsIdle(XmlRpcClient client) {
+    checkIsIdle(client, 0);
+  }
+
+  private static boolean checkIsIdle(XmlRpcClient client, int attempt) {
+    if (attempt >= 5) {
+      return false;
+    }
+
+    try {
+      return (Object[]) client.execute("crawlerServer.isIdle");
+    } catch (Exception e) {
+      System.err.println("ERROR: MasterServer cannot check if slave at " +
+                         client.getClientConfig().getServerUrl() +
+                         " is idle! Exception is " + e);
+      checkIsIdle(client, attempt + 1);
+    }
+
+    return false;
+  }
+  */
+
   public static Object[] checkPrice(String from, String to, String depDate) {
-  	XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-  	XmlRpcClient client = null;
-  	try {
-  		config.setServerURL(new URL(crawlerServerAddr + ":8593"));
-  		client = new XmlRpcClient();
-  		client.setConfig(config);
-  	} catch (Exception e) {
-  		System.err.println("ERROR: MasterServer cannot talk to slave at " + crawlerServerAddr +
-  			                 "! Exception is "+ e);
-  	}
+    XmlRpcClient client = getClient(crawlerServerAddr + ":8593");
 
   	Object[] params = new Object[3];
   	params[0] = from;
@@ -66,6 +96,7 @@ public class MasterServer {
 
 		MasterServer.startServer();
 
-		System.out.println("Price = " + checkPrice("BOS", "NYC", "05/29/2014")[0]);
+		System.out.println("Price = " + checkPrice("BOS", "NYC", "05/29/2014")[1]);
+
 	}
 }
