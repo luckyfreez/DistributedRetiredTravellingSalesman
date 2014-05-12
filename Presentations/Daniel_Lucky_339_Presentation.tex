@@ -1,0 +1,111 @@
+\documentclass[10pt, xcolor=svgnames]{beamer}
+\mode<presentation>{\usetheme[compress]{Berlin}}
+\setbeamertemplate{theorems}[ams style]
+\setbeamertemplate{caption}[numbered]
+\usepackage{amsmath,amssymb,latexsym,graphicx,verbatim}
+
+% CUSTOM COMMANDS
+\newtheorem{Conjecture}{Conjecture}
+\newtheorem{Question}{Question}
+\newtheorem{Observation}{Observation}
+\newcommand{\del}{\mathrm{\Delta}}
+\newcommand\Fontvi{\fontsize{6}{7.2}\selectfont}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+
+% THE PRESENTATION
+\title[Distributed TSP]{The Distributed Retired Traveling Salesman}
+\subtitle{Applying Integer Programming and CS 339 Concepts to Solve a Harder Version of the TSP}
+\author[Seita and Zhang]{Daniel Seita and Lucky Zhang} 
+\institute[Williams College]{Department of Computer Science, Williams College}
+\date{\today}
+
+\begin{document}
+\begin{frame}
+	\titlepage
+\end{frame}
+
+%\begin{figure}[p]
+%\centering
+%\includegraphics[width=0.5\textwidth]{IMAGES}
+%\caption{}
+%\label{fig:...}
+%\end{figure}
+
+
+\section{Introduction to TSP and IP}
+
+\subsection{Traveling Salesman Problem}
+
+\begin{frame}
+Give an intro to the problem here
+\end{frame}
+
+\subsection{Integer Programming}
+
+\begin{frame}
+Discuss this technique here
+
+Explain that we use binary integer programming
+\end{frame}
+
+
+\section{Binary Integer Programming Formulation}
+
+\begin{frame}
+Discuss basic problem setup.
+\end{frame}
+
+\begin{frame}
+More equations...
+\end{frame}
+
+\begin{frame}
+Discuss Balas' Additive Algorithm
+\end{frame}
+
+
+\section{Implementation and Results}
+
+\subsection{Implementation}
+
+\begin{frame}
+Our code, etc.
+\end{frame}
+
+\begin{frame}
+We used the following concepts from Distributed Systems:
+\end{frame}
+
+\subsection{Results}
+
+\begin{frame}
+Look at our computers. See what the flights are, etc. and show the DFS tree. How much do we save?
+Unfortunately, this problem is still exponential...we had to evaluate that many for 4 cities and 5 days (or something like that)
+\end{frame}
+
+\begin{frame}
+Todo from now until the May 23 deadline...
+\end{frame}
+
+
+
+
+\section{}
+\begin{frame}
+\begin{center}
+\Large{Thank you for your attention.}
+
+~
+
+\Huge{Any questions?\\}
+\end{center}
+
+\begin{center}
+Please contact one of us if you have any comments or feedback about our presentation. We view it as a privilege to be able to give these talks, and
+want to make sure that our viewers are as happy as possible.
+\end{center}
+\end{frame}
+
+\end{document}

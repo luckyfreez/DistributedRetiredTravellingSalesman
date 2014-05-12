@@ -36,13 +36,17 @@ public class Balas {
         // Ready to actually start Balas' Additive Algorithm! And no longer need 'original_{constraints, costs}'
         List<Integer> best_path = dfs(ordered_costs, ordered_constraints);
         System.out.println("\nDone with the DFS. Best path: " + best_path + ", with total cost: " + dot_product(best_path, ordered_costs));
-        System.out.println("Actual flights:");
+        System.out.println("Flights ordered by cost:");
+        List<Flight> best_flights = new ArrayList<Flight>();
         for (int i = 0; i < best_path.size(); i++) {
             if (best_path.get(i) == 1) {
-                System.out.println(flights.get(variable_ordering[i]));
+                Flight f = flights.get(variable_ordering[i]);
+                System.out.println(f);
+                best_flights.add(f);
             }
         }
-    }
+        
+    } 
 
 
     // Transforms the problem so that it satisfies the requirements for Balas' Algorithm
@@ -234,8 +238,12 @@ public class Balas {
             Node node = st.pop();
             if (!discovered.contains(node)) {
                 discovered.add(node);
-                
-                System.out.println("Now expanding node number " + expanded_nodes++ + " with path: " + node.path);
+
+                // Periodically print out progress to reassure the viewer
+                expanded_nodes++; 
+                if (expanded_nodes % 1000 == 0) {
+                    System.out.println("Node #" + expanded_nodes + "; Path: " + node.path);
+                }
 
                 if (node.path.size() < num_variables) {
 
@@ -280,6 +288,8 @@ public class Balas {
                 }
             }
         }
+        System.out.println("Total nodes analyzed: " + expanded_nodes);
+        System.out.println("Best solution: " + best_path);
         return best_path;
     }
 
@@ -315,36 +325,5 @@ public class Balas {
             return this.first < pair.first;
         }
     }
-
-
-    // No longer need a main method here! 
-    /*
-    public static void main(String[] args) {
-        
-        // Constraints matrix. The numbers in the last COLUMN (not row) corresponds to the 'b' vector.
-        // Second to last column is the type of equality: 0 means <=, 1 means >=. The algorithm requires >=.
-        // Each row here (i.e., sub-array) represents one equality.
-        // int[][] constraints = new int[][] { {-2, 6, -3, 4, 1, -2, 1, 2},
-                                            // {-5, -3, 1, 3, -2, 1, 1, -2},
-                                            // {5, -1, 4, -2, 2, -1, 1, 3} };
-
-        int[][] constraints = new int[][] { { 1, -3,  6, -2, -2,  4, 1,  2},
-                                            {-2,  1, -3,  1, -5,  3, 1, -2},
-                                            { 2,  4, -1, -1,  5, -2, 1,  3} };
-        // int[] costs = new int[] {3,5,6,9,10,10};
-        int[] costs = new int[] {10,6,5,10,3,9};
-        int num_variables = costs.length;
-        assert num_variables == constraints[0].length : "The costs and variables don't match in quantity.";
-
-        make_canonical(constraints); // Get constraints in canonical form
-        int[] variable_ordering = order_variables(costs); // Find the ordering of variables according to cost
-        int[] ordered_costs = order_costs(variable_ordering, costs); // Order the costs
-        int[][] ordered_constraints = order_constraints(variable_ordering, constraints);
-
-        // Ready to actually start Balas' Additive Algorithm!
-        List<Integer> best_path = dfs(ordered_costs, ordered_constraints);
-        System.out.println("\nDone with the DFS. Best path: " + best_path + ", with total cost: " + dot_product(best_path, ordered_costs));
-    }
-    */
 
 }

@@ -1,0 +1,8 @@
+\beamer@endinputifotherversion {3.26pt}
+\beamer@sectionintoc {1}{Introduction to TSP and IP}{2}{0}{1}
+\beamer@subsectionintoc {1}{1}{Traveling Salesman Problem}{2}{0}{1}
+\beamer@subsectionintoc {1}{2}{Integer Programming}{3}{0}{1}
+\beamer@sectionintoc {2}{Binary Integer Programming Formulation}{4}{0}{2}
+\beamer@sectionintoc {3}{Implementation and Results}{7}{0}{3}
+\beamer@subsectionintoc {3}{1}{Implementation}{7}{0}{3}
+\beamer@subsectionintoc {3}{2}{Results}{9}{0}{3}
