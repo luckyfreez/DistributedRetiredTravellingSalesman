@@ -224,6 +224,12 @@ public class MasterServer {
       System.out.println("\nNow checking flight prices...\n");
       checkFlightPrices();
 
+      System.out.println("\nFinish checking the flight prices...\n");
+      System.out.println("Here are all the flights we have now:");
+      for (Flight f : flights) {
+        System.out.println(f);
+      }
+
       // Do the integer programming based on the data in the arraylist flights.
       // TODO
     }

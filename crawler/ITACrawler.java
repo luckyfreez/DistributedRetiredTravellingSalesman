@@ -67,37 +67,56 @@ class ITACrawler {
         */
         WebElement fromInput = webDriver.findElement(By.id("advanced_from2"));
         WebElement toInput = webDriver.findElement(By.id("advanced_to2"));
-        //WebElement depDateInputs = webDriver.findElements(By.id("ita_form_date_DateTextBox_1"));
-        ArrayList<WebElement> depDateInputs = (ArrayList<WebElement>) webDriver.findElements(By.xpath("//input[matches(@id,'ita_form_date_DateTextBox_.*')]"));
+        WebElement depDateInput = webDriver.findElement(By.id("ita_form_date_DateTextBox_1"));
+        System.out.println("getting depDateInputs");
+        /*
+        ArrayList<WebElement> depDateInputs = (ArrayList<WebElement>) webDriver.findElements(
+            By.xpath("//*[starts-with(@id, \"ita_form_date_DateTextBox_\")]"));
+            //By.xpath("//*[@id=\"ita_form_date_DateTextBox_1\"]"));
+            //By.xpath("//*[@id=\"ita_form_date_DateTextBox_1\"]"));
+            //By.xpath("//input[matches(@id,'ita_form_date_DateTextBox_\\d+')]"));
+        //*[@id="ita_form_date_DateTextBox_6"]
+        System.out.println(depDateInputs.size());
+        */
 
         WebElement searchButton = webDriver.findElement(By.id("advanced_searchSubmitButton"));
 
-        fromInput.clear();
+        fromInput.click();
         fromInput.sendKeys(from);
         fromInput.sendKeys(Keys.RETURN);
-        toInput.clear();
+        toInput.click();
         toInput.sendKeys(to);
         toInput.sendKeys(Keys.RETURN);
+                        depDateInput.click();
+                depDateInput.sendKeys(depDate);
 
+                /*
         for (WebElement depDateInput : depDateInputs) {
             if (depDateInput.isDisplayed()) {
+                System.out.println("id = " + depDateInput.getAttribute("id"));
                 depDateInput.clear();
                 depDateInput.sendKeys(depDate);
                 depDateInput.sendKeys(Keys.RETURN);
             }
         }
+        */
         //retDateInput.sendKeys("05/26/2014");
         searchButton.submit();
 
+        System.out.println("submitted the search button");
             //(new WebDriverWait(webDriver, 48)).until(!presenceOfElementLocated(By.id("itaLoadingIcon"))); 
         (new WebDriverWait(webDriver, 88)).until(presenceOfElementLocated(By.id("sites_matrix_panels_flights_Row_0")));
         //WebElement cheapestLabel = webDriver.findElement(By.id("ita_form_button_LinkButton_0_label"));
+        System.out.println("found sites_matrix_panels_flights_Row_0");
+
         WebElement row0 = webDriver.findElement(By.id("sites_matrix_panels_flights_Row_0"));
         WebElement priceSpan = row0.findElement(By.className("itaPrice"));
         WebElement carrierSpan = row0.findElement(By.className("itaSolutionCarriers"));
         WebElement depTimeSpan = row0.findElements(By.className("itaSliceTimes")).get(0);
         WebElement arrTimeSpan = row0.findElements(By.className("itaSliceTimes")).get(1);
         WebElement durationTimeSpan = row0.findElement(By.className("itaSliceDuration"));
+
+        System.out.println("found all the elements");
 
         // This is the default result to return (when query fails).
         Object[] result = new Object[] { false, -1, "", "", "" };
@@ -112,6 +131,8 @@ class ITACrawler {
         System.out.println("Arriving at" + arrTimeSpan.getText());
         System.out.println("Duration" + durationTimeSpan.getText());
         */
+       System.out.println("about to finish"); 
+      webDriver.manage().deleteAllCookies();
         return result;
     }
 
