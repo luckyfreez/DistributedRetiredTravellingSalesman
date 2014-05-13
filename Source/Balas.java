@@ -29,13 +29,16 @@ public class Balas {
 
         make_canonical(original_constraints); // Get constraints in canonical form
         // Find the ordering of variables according to cost
-        int[] variable_ordering = order_variables(original_costs); // so variable_ordering[0] gives index of smallest cost
+        // E.g., variable_ordering[0] gives index of smallest cost variable (i.e., flight) in the original 'flights' list
+        int[] variable_ordering = order_variables(original_costs);
         int[] ordered_costs = order_costs(variable_ordering, original_costs); // Order the costs
         int[][] ordered_constraints = order_constraints(variable_ordering, original_constraints);
 
-        // Ready to actually start Balas' Additive Algorithm! And no longer need 'original_{constraints, costs}'
-        List<Integer> best_path = dfs(ordered_costs, ordered_constraints);
-        System.out.println("\nDone with the DFS. Best path: " + best_path + ", with total cost: " + dot_product(best_path, ordered_costs));
+        // Ready to actually start Balas' Additive Algorithm! 
+        List<Integer> best_path = dfs(ordered_costs, ordered_constraints, variable_ordering);
+
+        // Now print results, analyze, etc.
+        System.out.println("Done with the DFS. Total cost: " + dot_product(best_path, ordered_costs));
         System.out.println("Flights ordered by cost:");
         List<Flight> best_flights = new ArrayList<Flight>();
         for (int i = 0; i < best_path.size(); i++) {
@@ -214,8 +217,39 @@ public class Balas {
     }
 
 
+    // Checks flight logic. Returns FALSE if we arrive at one city but leave from another city for the next flight.
+    // Note that it uses the 'flights' list which we defined when starting an instance of a Balas problem
+    public static boolean check_flight_logic(List<Integer> path, int[] variable_ordering) {
+        List<Flight> current_flights = new ArrayList<Flight>();
+        for (int i = 0; i < path.size(); i++) {
+            if (path.get(i) == 1) {
+                int flight_index = variable_ordering[i];
+                current_flights.add(flights.get(i));
+            }
+        }
+
+        // Now we have a list of flights that we've set to happen. Let's check their logic (don't need to check last)
+        // TODO Only works if we assume same month and year ... but can easily expand this for more later
+        for (int i = 0; i < current_flights.size()-1; i++) {
+            Flight first_flight = current_flights.get(i);
+            Flight second_flight = current_flights.get(i+1);
+            String[] date_first = first_flight.depDate.split("/");
+            String[] date_second = second_flight.depDate.split("/");
+            if (date_first[0].equals(date_second[0])) {
+                // Same month. Check for day.
+                int day_first = Integer.parseInt(date_first[1]);
+                int day_second = Integer.parseInt(date_second[1]);
+                if (day_first >= day_second) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
     // This performs Balas' Additive Algorithm.
-    public static List<Integer> dfs(int[] costs, int[][] constraints) {
+    public static List<Integer> dfs(int[] costs, int[][] constraints, int[] variable_ordering) {
 
         // Getting things set up and assume worst-case scenario cost
         int best_cost = 0;
@@ -276,8 +310,12 @@ public class Balas {
                         // System.out.println("Cannot find a feasible solution by looking ahead, so let's check for pruning.");
                         if (!check_pruning(path1, costs, constraints)) {
                             // System.out.println("Case 1: cannot prune.");
-                            Node child = new Node(node, path1); 
-                            st.push(child);
+
+                            // NEW! ... Since we've added in a 1, let's first check if there is a LOGICAL FLIGHT DISCONTINUITY!
+                            if (check_flight_logic(path1, variable_ordering)) {
+                                Node child = new Node(node, path1); 
+                                st.push(child);
+                            }
                         }
                         if (!check_pruning(path2, costs, constraints)) {
                             // System.out.println("Case 2: cannot prune.");

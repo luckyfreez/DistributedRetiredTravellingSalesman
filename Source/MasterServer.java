@@ -205,24 +205,24 @@ public class MasterServer {
         // Everything is zero by default, and we'll make certain coefficients one later. Double check # of equations!
         int[][] constraints = new int[numCities + numCities + numDays + extraCycleConstraints + extraLogicalConstraints][equationLength];
        
-        // First set: must make sure only one flight per day NOTE: We set things to be MINUS ONE because we want >=
+        // First set: must make sure only one flight per day
         for (int d = 0; d < numDays; d++) {
             String date = dates[d];
             int[] dateEquation = new int[equationLength];
             for (int i = 0; i < flights.size(); i++) {
                 String flightDate = flights.get(i).depDate;
                 if (flightDate.equals(date)) {
-                    dateEquation[i] = -1;
+                    dateEquation[i] = 1;
                 }
             }
-            dateEquation[equationLength-2] = 1; // We want >= 1 so set this to be 1
-            dateEquation[equationLength-1] = -1; // Because we set things to be >= 1
+            dateEquation[equationLength-2] = 0;
+            dateEquation[equationLength-1] = 1;
             constraints[d] = dateEquation;
         }
+        int additiveFactor = numDays;
 
         // Second set: must make sure we enter each city at least once (i.e., for each 'j'...)
         // Note here that we start at index of dates.length so that we don't overwrite the older equations
-        int additiveFactor = numDays;
         for (int j = 0; j < numCities; j++) {
             int[] cityEquation = new int[equationLength];
             for (int x = 0; x < flights.size(); x++) {
@@ -235,9 +235,9 @@ public class MasterServer {
             cityEquation[equationLength-1] = 1;
             constraints[j + additiveFactor] = cityEquation;
         }
+        additiveFactor += numCities;
 
         // Third set: must make sure we leave each city at least once (i.e., for each 'i'...)
-        additiveFactor += numCities;
         for (int i = 0; i < numCities; i++) {
             int[] cityEquation = new int[equationLength];
             for (int x = 0; x < flights.size(); x++) {
@@ -250,26 +250,29 @@ public class MasterServer {
             cityEquation[equationLength-1] = 1;
             constraints[i + additiveFactor] = cityEquation;
         }
+        additiveFactor += numCities;
         
         // Okay, so I lied. Let's worry about cycles!
-        additiveFactor += numCities;
-        for (int i = 0; i < extraCycleConstraints; i++) {
-            int[] cycleConstraint = new int[equationLength];
-            String[] oneGroup = cycles[i];           
-            for (int x = 0; x < flights.size(); x++) {
-                String startCity = flights.get(x).from;
-                String endCity = flights.get(x).to;
-                if (Arrays.asList(oneGroup).contains(startCity) && !Arrays.asList(oneGroup).contains(endCity)) {
-                    cycleConstraint[x] = 1;
+        if (numCities >= 4) {
+            for (int i = 0; i < extraCycleConstraints; i++) {
+                int[] cycleConstraint = new int[equationLength];
+                String[] oneGroup = cycles[i];           
+                for (int x = 0; x < flights.size(); x++) {
+                    String startCity = flights.get(x).from;
+                    String endCity = flights.get(x).to;
+                    if (Arrays.asList(oneGroup).contains(startCity) && !Arrays.asList(oneGroup).contains(endCity)) {
+                        cycleConstraint[x] = 1;
+                    }
                 }
+                cycleConstraint[equationLength-2] = 1;
+                cycleConstraint[equationLength-1] = 1;
+                constraints[i + additiveFactor] = cycleConstraint;
             }
-            cycleConstraint[equationLength-2] = 1;
-            cycleConstraint[equationLength-1] = 1;
-            constraints[i + additiveFactor] = cycleConstraint;
+            additiveFactor += extraCycleConstraints;
         }
 
-        // Now let's fix the whole back-to-back issue, ASSUMING that we have 4 cities for 4 days (or more generally, n for n days)
-        additiveFactor += extraCycleConstraints;
+        // Now let's fix the whole back-to-back issue, ASSUMING that we have 4 cities for 4 days
+        // Actually, this code DOES generalize to n cities for n days (we assume we always have n > 3)
         int index = 0;
         for (int d = 0; d < numDays-1; d++) { // Do numDays-1 since the last day doesn't matter in this sense
             for (int c = 0; c < numCities; c++) {
@@ -287,14 +290,14 @@ public class MasterServer {
                         logicalConstraint[x] = 1;
                     }
                 }
-                logicalConstraint[equationLength-2] = 0; // Because it's LESS THAN or equal...
+                logicalConstraint[equationLength-2] = 0;
                 logicalConstraint[equationLength-1] = 1;
                 constraints[index + additiveFactor] = logicalConstraint;
                 index++;
             }
         }
 
-        // Sanity check
+        // Sanity check (we should put more of these around...)
         if (index + additiveFactor != constraints.length) {
             System.out.println("Something went wrong, we didn't fill in all equations.");
             System.exit(-1);
@@ -311,9 +314,9 @@ public class MasterServer {
 
         // Input file has start/end dates, followed by each city to travel. All info in its own line.
         String startDate = "06/09/2014";
-        String endDate = "06/12/2014";
+        String endDate = "06/14/2014";
         String dates[] = obtainDates(startDate, endDate);
-        String[] cities = new String[] { "BOS", "SFO", "ORD", "SEA"};
+        String[] cities = new String[] { "HNL", "SEA", "ORD", "BOS"};
         // String startAndEndCity = "BOS"; // TODO Get a starting city up?
 
         // Using this information, now we generate all possible flights and check their prices.
