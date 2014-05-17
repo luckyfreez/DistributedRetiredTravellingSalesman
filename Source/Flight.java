@@ -1,6 +1,6 @@
 /*
  * Flight class
- *
+ * Has comparable so that it's easy to order flights based on departure date
  */
 
 import java.util.*;
@@ -32,12 +32,13 @@ public class Flight implements Comparable<Flight> {
         String otherDepDate = f.depDate;
         String[] ourDate = depDate.split("/");
         String[] otherDate = otherDepDate.split("/");
-        if (ourDate[2] != otherDate[2]) {
-            return Integer.parseInt(ourDate[2]) - Integer.parseInt(otherDate[2]);
-        } else if (ourDate[0] != otherDate[0]) {
-            return Integer.parseInt(ourDate[0]) - Integer.parseInt(otherDate[0]);
+        if (!ourDate[2].equals(otherDate[2])) {
+            return ourDate[2].compareTo(otherDate[2]);
+        } else if (!ourDate[0].equals(otherDate[0])) {
+            return ourDate[0].compareTo(otherDate[0]);
         } else {
-            return Integer.parseInt(ourDate[1]) - Integer.parseInt(otherDate[1]);
+            return ourDate[1].compareTo(otherDate[1]);
         }
     }
+
 }

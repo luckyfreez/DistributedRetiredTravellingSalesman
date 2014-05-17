@@ -39,7 +39,7 @@ while True:
     if user_request == "q":
         sys.exit()
     elif check_input(user_request):
-        print "Input is in the correct format. Now starting the flight scheduler..."
-        print server.masterServer.startProblem(user_request)
+        print "Input is in the correct format. Now solving ..."
+        print "\n" + server.masterServer.startProblem(user_request) + "\n"
     else:
         print "Input is not in the right format. Please try again."
