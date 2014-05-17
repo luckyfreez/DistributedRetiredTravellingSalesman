@@ -12,13 +12,17 @@ import org.apache.xmlrpc.server.XmlRpcServer;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
 import org.apache.xmlrpc.XmlRpcException;
 
-// TODO Clean up and document!
-
 public class MasterServer {
 
-    // flights stores all possible flights we might take
-    public static ArrayList<Flight> flights = new ArrayList<Flight>();
-    private static String crawlerServerAddr = "";
+    public static ArrayList<Flight> flights = new ArrayList<Flight>();  // All possible flights 
+    private static String crawlerServerAddr = "";                       // Used to connect to crawler
+
+
+    // Just gets the crawlerServer hostname and starts the master.
+    public static void main(String[] args) {
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost");
+        MasterServer.startServer();
+    }
 
 
     // Starts the master server.
@@ -54,69 +58,6 @@ public class MasterServer {
     }
 
 
-    // Given a start and ending date, this will return an array of all the dates we have
-    public static String[] obtainDates(String start, String end) {
-
-        String[] startParts = start.split("/");
-        String[] endParts = end.split("/");
-        int startDay = Integer.parseInt(startParts[1]); 
-        int startMonth = Integer.parseInt(startParts[0]); 
-        int startYear = Integer.parseInt(startParts[2]); 
-        int endDay = Integer.parseInt(endParts[1]); 
-        int endMonth = Integer.parseInt(endParts[0]); 
-        int endYear = Integer.parseInt(endParts[2]); 
-
-        // First, do a bunch of checks.
-        if (startYear > endYear) {
-            System.out.println("Error: start year is " + startYear + " and end year is " + endYear + ".");
-            System.exit(-1);
-        } else if (startYear == endYear) {
-            if (startMonth > endMonth) {
-                System.out.println("Error: start month is " + startMonth + " and end month is " + endMonth + ".");
-                System.exit(-1);
-            } else if (startMonth == endMonth) {
-                if (startDay > endDay) {
-                    System.out.println("Error: start day is " + startDay + " and end day is " + endDay + ".");
-                    System.exit(-1);
-                }
-            }
-        }
-
-        // Now find all dates (assume Feb is not leap...). TODO Fix for new years and leap years.
-        int[] monthDays = new int[] {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-        List<String> dates = new ArrayList<String>();
-        String currentDate = start;
-        dates.add(currentDate);
-
-        while (!currentDate.equals(end)) {
-            String[] dateParts = currentDate.split("/");
-            int day = Integer.parseInt(dateParts[1]);
-            int month = Integer.parseInt(dateParts[0]);
-            day++;
-            // Remember, assume that month is < than 12...
-            if (day > monthDays[month-1]) {
-                day = 1;
-                month++;
-            }
-            String newDay = Integer.toString(day);
-            String newMonth = Integer.toString(month);
-            if (newDay.length() == 1) {
-                newDay = "0" + newDay;
-            }
-            if (newMonth.length() == 1) {
-                newMonth = "0" + newMonth;
-            }
-            currentDate = newMonth + "/" + newDay + "/" + dateParts[2];
-            // System.out.println("New date is: " + currentDate);
-            dates.add(currentDate);
-        }
-
-        // Finally, convert to array and return.
-        String[] allDates = new String[dates.size()];
-        return dates.toArray(allDates);
-    }
-
-
     // Uses the crawler to check the price of a given flight
     public static Object[] checkPrice(String from, String to, String depDate) {
         XmlRpcClient client = getClient(crawlerServerAddr + ":8001");
@@ -139,6 +80,21 @@ public class MasterServer {
     }
 
 
+    // This method checks all the flight prices.
+    // TODO Change this so that it can distribute across machines.
+    public static void checkFlightPrices() {
+        for (Flight f : flights) {
+            Object[] queryResult = checkPrice(f.from, f.to, f.depDate);
+            if ((Boolean) queryResult[0]) {
+                f.price = Integer.parseInt((String) queryResult[1]);
+            } else {
+                f.price = 100000; // Need to get some value here just in case.
+            }
+            System.out.println(f);
+        }
+    }
+
+
     // Gathers all possible combinations of flights that might be used in integer programming.
     // This only computes the combinations. (The price check happens at checkFlightPrices.)
     public static void gatherFlights(String[] dates, String[] cities) {
@@ -151,21 +107,6 @@ public class MasterServer {
                     }
                 }
             }
-        }
-    }
-
-
-    // This method checks all the flight prices.
-    // TODO Change this so that it can distribute across machines.
-    public static void checkFlightPrices() {
-        for (Flight f : flights) {
-            Object[] queryResult = checkPrice(f.from, f.to, f.depDate);
-            if ((Boolean) queryResult[0]) {
-                f.price = Integer.parseInt((String) queryResult[1]);
-            } else {
-                f.price = 100000; // Need to get some value here just in case.
-            }
-            System.out.println(f);
         }
     }
 
@@ -306,33 +247,30 @@ public class MasterServer {
         return constraints;
     }
 
-
-    // Input: crawlerServer hostname. Defaults to local hostname.
-    public static void main(String[] args) {
-
-        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost");
-        MasterServer.startServer();
-    }
-
     
-    // This is what the server will call for us
-    public String startProblem(String startDate, String endDate, String cities) {
+    // This is what the client will call, and the server uses it to solve the problem
+    public String[] startProblem(String inputFromClient) {
 
-        System.out.println("Now we're starting the problem!");
+        // Parse the input from the client.
+        String[] input = inputFromClient.split(" ");
+        String startDate = input[0];
+        String endDate = input[1];
+        Dates d = new Dates(startDate, endDate);
+        String[] dates = d.obtainDates();
+        String[] cities = new String[input.length-2];
+        for (int i = 2; i < input.length; i++) {
+            cities[i-2] = input[i];
+        }
+        System.out.println("Starting the problem! Here's our input:");
+        System.out.println("All dates: " + Arrays.toString(dates));
+        System.out.println("All cities: " + Arrays.toString(cities));
 
-        // Input file has start/end dates, followed by each city to travel. All info in its own line.
-        String startDate = "06/09/2014";
-        String endDate = "06/11/2014";
-        String dates[] = obtainDates(startDate, endDate);
-        String[] cities = new String[] { "SEA", "ORD", "BOS"};
-        // String startAndEndCity = "BOS"; // TODO Get a starting city up?
-
-        // Using this information, now we generate all possible flights and check their prices.
+        // Now generate all possible flights and check their prices. This will take a while!
         gatherFlights(dates, cities);
         System.out.println("\nNow checking flight prices...");
         checkFlightPrices();
 
-        // Do the integer programming based on the data in the arraylist flights.
+        // Now set up the IP problem based on the list of flights (need to get inputs)
         System.out.println("\nNow converting to an integer programming problem...");
         int[] costs = obtainCosts();
         int[][] constraints = obtainConstraints(cities, dates);
@@ -341,14 +279,19 @@ public class MasterServer {
         for (int[] eq : constraints) {
             System.out.println(Arrays.toString(eq));
         }
-        
+
+        // Solve the IP problem TODO make the return value more meaningful
         System.out.println("\nNow calling Balas' algorithm...");
         Balas newProblem = new Balas(constraints, costs, flights);
-        newProblem.solve();
-        System.out.println("\nDONE!");
-
-        return "Done";
-
+        List<Flight> best_flights = newProblem.solve();
+        System.out.println(best_flights);
+        Collections.sort(best_flights);
+        System.out.println(best_flights);
+        String[] result = new String[best_flights.size()];
+        for (int i = 0; i < best_flights.size(); i++) {
+            result[i] = best_flights.get(i).toString();
+        }
+        return result;
     }
 
 }

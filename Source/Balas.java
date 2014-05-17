@@ -23,7 +23,7 @@ public class Balas {
 
 
     // Called by Balas to solve the input. (Which then calls everything else...)
-    public static void solve() {
+    public List<Flight> solve() {
         int num_variables = original_costs.length;
         assert num_variables == original_constraints[0].length - 2 : "The costs and variables don't match in quantity.";
 
@@ -37,18 +37,16 @@ public class Balas {
         // Ready to actually start Balas' Additive Algorithm! 
         List<Integer> best_path = dfs(ordered_costs, ordered_constraints, variable_ordering);
 
-        // Now print results, analyze, etc.
+        // Convert the best path to the best set of flights, and return that to the master.
         System.out.println("Done with the DFS. Total cost: " + dot_product(best_path, ordered_costs));
-        System.out.println("Flights ordered by cost:");
         List<Flight> best_flights = new ArrayList<Flight>();
         for (int i = 0; i < best_path.size(); i++) {
             if (best_path.get(i) == 1) {
                 Flight f = flights.get(variable_ordering[i]);
-                System.out.println(f);
                 best_flights.add(f);
             }
         }
-        
+        return best_flights;
     } 
 
 
@@ -218,10 +216,11 @@ public class Balas {
     }
 
 
+    // TODO This needs to be fixed! I think you can only do this if you know you're right about to finish up
+    // Because even if there is a discontinuity at some point, we cannot be sure that another flight isn't going to come up in between
     // Checks flight logic. Returns FALSE if we arrive at one city but leave from another city for the next flight.
-    // Note that it uses the 'flights' list which we defined when starting an instance of a Balas problem
     public static boolean check_flight_logic(List<Integer> path, int[] variable_ordering) {
-        List<Flight> current_flights = new ArrayList<Flight>();
+        List<Flight> current_flights = new ArrayList<Flight>(); // Current flights listed in order of cost
         for (int i = 0; i < path.size(); i++) {
             if (path.get(i) == 1) {
                 int flight_index = variable_ordering[i];
@@ -230,7 +229,7 @@ public class Balas {
         }
 
         // Now we have a list of flights that we've set to happen. Let's check their logic (don't need to check last)
-        // TODO Only works if we assume same month and year ... but can easily expand this for more later
+        // TODO Only works if we assume same month and year, but can easily expand this for more later
         for (int i = 0; i < current_flights.size()-1; i++) {
             Flight first_flight = current_flights.get(i);
             Flight second_flight = current_flights.get(i+1);
@@ -313,7 +312,8 @@ public class Balas {
                             // System.out.println("Case 1: cannot prune.");
 
                             // NEW! ... Since we've added in a 1, let's first check if there is a LOGICAL FLIGHT DISCONTINUITY!
-                            if (check_flight_logic(path1, variable_ordering)) {
+                            // if (check_flight_logic(path1, variable_ordering)) {
+                            if (true) {
                                 Node child = new Node(node, path1); 
                                 st.push(child);
                             }
