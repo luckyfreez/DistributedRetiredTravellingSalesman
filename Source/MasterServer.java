@@ -31,6 +31,7 @@ public class MasterServer {
             phm.addHandler("masterServer", MasterServer.class);
             xmlRpcServer.setHandlerMapping(phm);
             server.start();
+            System.out.println("Master server has started!");
         } catch (Exception e) {
             System.err.println("ERROR: MasterServer cannot start! Exception is " + e);
         }
@@ -311,12 +312,19 @@ public class MasterServer {
 
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost");
         MasterServer.startServer();
+    }
+
+    
+    // This is what the server will call for us
+    public String startProblem(String startDate, String endDate, String cities) {
+
+        System.out.println("Now we're starting the problem!");
 
         // Input file has start/end dates, followed by each city to travel. All info in its own line.
         String startDate = "06/09/2014";
-        String endDate = "06/14/2014";
+        String endDate = "06/11/2014";
         String dates[] = obtainDates(startDate, endDate);
-        String[] cities = new String[] { "HNL", "SEA", "ORD", "BOS"};
+        String[] cities = new String[] { "SEA", "ORD", "BOS"};
         // String startAndEndCity = "BOS"; // TODO Get a starting city up?
 
         // Using this information, now we generate all possible flights and check their prices.
@@ -339,5 +347,8 @@ public class MasterServer {
         newProblem.solve();
         System.out.println("\nDONE!");
 
+        return "Done";
+
     }
+
 }

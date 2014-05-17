@@ -25,7 +25,7 @@ public class Balas {
     // Called by Balas to solve the input. (Which then calls everything else...)
     public static void solve() {
         int num_variables = original_costs.length;
-        assert num_variables == original_constraints[0].length : "The costs and variables don't match in quantity.";
+        assert num_variables == original_constraints[0].length - 2 : "The costs and variables don't match in quantity.";
 
         make_canonical(original_constraints); // Get constraints in canonical form
         // Find the ordering of variables according to cost
@@ -126,7 +126,6 @@ public class Balas {
     // Orders the constraints based on the appropriate list of variables
     public static int[][] order_constraints(int[] ordered_variables, int[][] constraints) {
         int[][] ordered_constraints = new int[constraints.length][constraints[0].length];
-        assert ordered_constraints.length == ordered_variables.length + 2 : "Something is off with the number of elements here.";
         for (int i = 0; i < constraints.length; i++) {
             int[] current_equation = new int[ordered_variables.length];
 
@@ -177,7 +176,7 @@ public class Balas {
 
     // Hepler method for Balas' alg to compute dot product, with path of variables and either costs or weights.
     public static int dot_product(List<Integer> full_path, int[] weights) {
-        assert full_path.size() == weights.length : "Need equal number of variables in path list and cost vector.";
+        assert full_path.size() == weights.length : "Error: full path is length " + full_path.size() + " but weight vector is of length " + weights.length;
         int total = 0;
         for (int i = 0; i < weights.length; i++) {
             total += full_path.get(i) * weights[i];
@@ -190,10 +189,12 @@ public class Balas {
     // to be zero. Returns -1 if no solution can be found using this method.
     public static int look_ahead(List<Integer> path, int[] costs, int[][] constraints) {
 
-        // Add zeroes to the path (sometimes we add a single 1) to make it 'full'
+        // Add zeroes to the path (sometimes we add a single 1) to make it 'full' if it's shorter than costs...
         int num_variables = costs.length;
-        if (path.get(path.size()-1) == 0) {
-            path.add(1);
+        if (path.size() < num_variables) {
+            if (path.get(path.size()-1) == 0) {
+                path.add(1);
+            }
         }
         for (int i = path.size(); i < num_variables; i++) {
             path.add(0);
