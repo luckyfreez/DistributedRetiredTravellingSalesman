@@ -1,4 +1,11 @@
+/*
+ * The master server and the workhorse in terms of calling the slaves and getting the constraints set up.
+ * TODO I think we need to add more assertions and sanity checks just to make debugging easier (~Daniel)
+ * (c) 2014 by Daniel Seita and Lucky Zhang
+ */
+
 import java.util.*;
+import java.lang.*;
 
 // Import for client
 import java.net.URL;
@@ -82,6 +89,7 @@ public class MasterServer {
 
     // This method checks all the flight prices.
     // TODO Change this so that it can distribute across machines.
+    // TODO Actually, we may want a time-out value ... just in case no flight exists...
     public static void checkFlightPrices() {
         for (Flight f : flights) {
             Object[] queryResult = checkPrice(f.from, f.to, f.depDate);
@@ -122,32 +130,37 @@ public class MasterServer {
     }
 
 
-    // This converts the flight information into the int[][] of constraints
-    // This is a very important method! Must double check and make sure it is correct!
+    /**
+     * This converts the flight information into the int[][] of constraints. A VERY important method!
+     * (1) With n cities and m days, we have n+n+m constraints regarding one flight a day and entering/leaving cities
+     * (2) Prevent disjoint cycles. Here are how many we need: (3, 0), (4, 3), (5, 10), (6, 25). Do NOT do more than four or five!
+     * (3) Flight logic: we only check any pairs of flights on consecutive days here. (Defer rest to other parts of code.)
+     * Note: if you're going to modify constraints, be VERY CAREFUL and CHECK INDICES, etc.
+     */
     public static int[][] obtainConstraints(String[] cities, String[] dates) {
 
-        // If n cities and m days, if we don't worry about cycles, then this means we have n+n+m total constraints (i.e., arrays)
         int numCities = cities.length;
         int numDays = dates.length;
         int equationLength = flights.size() + 2;
-        int extraCycleConstraints = 0;
         int extraLogicalConstraints = (numDays-1) * numCities;
 
-        // Okay, let's do cycles. With 4 cities, we have 3 extra cycles to look after
-        // E.g., cycles[0] means we have first/second city in one group and must leave out of them to get to other group
-        String[][] cycles = new String[3][2];
-        if (numCities == 4) {
-            extraCycleConstraints = 3;
-            cycles[0] = new String[] {cities[0], cities[1]};
-            cycles[1] = new String[] {cities[0], cities[2]};
-            cycles[2] = new String[] {cities[0], cities[3]};
+        // Let's generate all possible permutations; use helper methods to generate the power set
+        // Then we'll remove all those that have a set of size one (useless) or >= numCities-1
+        List<ArrayList<String>> cityGroups = powerSet(cities);
+        for (int i = cityGroups.size()-1; i >= 0; i--) {
+            if ((cityGroups.get(i).size() <= 1) || (cityGroups.get(i).size() >= numCities-1)) {
+                cityGroups.remove(i);
+            }
         }
+        System.out.println("Here is our power set of cities with at least 2 and 2 in the subsets: " + cityGroups);
+        // Now we know how many constraints to add
+        int extraCycleConstraints = cityGroups.size();
 
         // Variables are going to be listed according to their appearance in 'flights' list
-        // Everything is zero by default, and we'll make certain coefficients one later. Double check # of equations!
+        // Everything is zero by default, and we'll make certain coefficients one later.
         int[][] constraints = new int[numCities + numCities + numDays + extraCycleConstraints + extraLogicalConstraints][equationLength];
        
-        // First set: must make sure only one flight per day
+        // Constraint (1a): each day must have at most one flight.
         for (int d = 0; d < numDays; d++) {
             String date = dates[d];
             int[] dateEquation = new int[equationLength];
@@ -161,10 +174,9 @@ public class MasterServer {
             dateEquation[equationLength-1] = 1;
             constraints[d] = dateEquation;
         }
-        int additiveFactor = numDays;
+        int additiveFactor = numDays; // This is key to keep the indexing consistent!
 
-        // Second set: must make sure we enter each city at least once (i.e., for each 'j'...)
-        // Note here that we start at index of dates.length so that we don't overwrite the older equations
+        // Constraint (1b): we must enter each city at least once (i.e., for each 'j'...)
         for (int j = 0; j < numCities; j++) {
             int[] cityEquation = new int[equationLength];
             for (int x = 0; x < flights.size(); x++) {
@@ -179,7 +191,7 @@ public class MasterServer {
         }
         additiveFactor += numCities;
 
-        // Third set: must make sure we leave each city at least once (i.e., for each 'i'...)
+        // Constraint (1c): we must leave each city at least once (i.e., for each 'i'...)
         for (int i = 0; i < numCities; i++) {
             int[] cityEquation = new int[equationLength];
             for (int x = 0; x < flights.size(); x++) {
@@ -193,30 +205,29 @@ public class MasterServer {
             constraints[i + additiveFactor] = cityEquation;
         }
         additiveFactor += numCities;
-        
-        // Okay, so I lied. Let's worry about cycles!
-        if (numCities >= 4) {
-            for (int i = 0; i < extraCycleConstraints; i++) {
-                int[] cycleConstraint = new int[equationLength];
-                String[] oneGroup = cycles[i];           
-                for (int x = 0; x < flights.size(); x++) {
-                    String startCity = flights.get(x).from;
-                    String endCity = flights.get(x).to;
-                    if (Arrays.asList(oneGroup).contains(startCity) && !Arrays.asList(oneGroup).contains(endCity)) {
-                        cycleConstraint[x] = 1;
-                    }
-                }
-                cycleConstraint[equationLength-2] = 1;
-                cycleConstraint[equationLength-1] = 1;
-                constraints[i + additiveFactor] = cycleConstraint;
-            }
-            additiveFactor += extraCycleConstraints;
-        }
 
-        // Now let's fix the whole back-to-back issue, ASSUMING that we have 4 cities for 4 days
-        // Actually, this code DOES generalize to n cities for n days (we assume we always have n > 3)
+        // Constraint (2): prevent disjoint cycles from appearing, using our 'oneGroup' list from earlier
+        // I think this adds twice as many cycle constraints as is necessary, but its if our DFS tree gets smaller
+        for (int i = 0; i < extraCycleConstraints; i++) {
+            int[] cycleConstraint = new int[equationLength];
+            List<String> oneGroup = cityGroups.get(i);           
+            for (int x = 0; x < flights.size(); x++) {
+                String startCity = flights.get(x).from;
+                String endCity = flights.get(x).to;
+                if (oneGroup.contains(startCity) && !oneGroup.contains(endCity)) {
+                    cycleConstraint[x] = 1;
+                }
+            }
+            cycleConstraint[equationLength-2] = 1;
+            cycleConstraint[equationLength-1] = 1;
+            constraints[i + additiveFactor] = cycleConstraint;
+        }
+        additiveFactor += extraCycleConstraints;
+
+        // Constraint (3): For any two flights on BACK TO BACK days, they must enter/leave in a way that makes sense
+        // This code generalizes for n cities to n days (and even n+1 days, I believe...)
         int index = 0;
-        for (int d = 0; d < numDays-1; d++) { // Do numDays-1 since the last day doesn't matter in this sense
+        for (int d = 0; d < numDays-1; d++) { // Do numDays-1 since the last day doesn't matter 
             for (int c = 0; c < numCities; c++) {
                 String day = dates[d];
                 String nextDay = dates[d+1];
@@ -247,8 +258,51 @@ public class MasterServer {
         return constraints;
     }
 
-    
-    // This is what the client will call, and the server uses it to solve the problem
+
+    /**
+     * Returns the power set from the given set by using a binary counter
+     * Example: S = {a,b,c}, P(S) = {[], [c], [b], [b, c], [a], [a, c], [a, b], [a, b, c]}
+     */
+    public static List<ArrayList<String>> powerSet(String[] set) {
+
+        List<ArrayList<String>> power = new ArrayList<ArrayList<String>>();
+        int elements = set.length;
+        int powerElements = (int) Math.pow(2,elements);
+
+        // Run a binary counter for the number of power elements
+        for (int i = 0; i < powerElements; i++) {
+            String binary = intToBinary(i, elements);
+            ArrayList<String> innerSet = new ArrayList<String>();
+            // Convert each digit in the current binary number to the corresponding element in the given set
+            for (int j = 0; j < binary.length(); j++) {
+                if (binary.charAt(j) == '1')
+                    innerSet.add(set[j]);
+            }
+            power.add(innerSet);
+        }
+        return power;
+    }
+
+
+    /**
+     * Converts the given integer to a String representing a binary number with the specified number of digits
+     * Example: when using 4 digits the binary 1 is 0001
+     */
+    public static String intToBinary(int binary, int digits) {
+        String temp = Integer.toBinaryString(binary);
+        int foundDigits = temp.length();
+        String returner = temp;
+        for (int i = foundDigits; i < digits; i++) {
+            returner = "0" + returner;
+        }
+        return returner;
+    } 
+
+
+    /*
+     * Important method! This is what the client will call, and the server uses it to solve the problem
+     * It's split into a lot of stages so that it's clear what's going on. And filled with helpful prints.
+     */
     public String[] startProblem(String inputFromClient) {
 
         // Parse the input from the client.
@@ -275,7 +329,7 @@ public class MasterServer {
         int[] costs = obtainCosts();
         int[][] constraints = obtainConstraints(cities, dates);
         System.out.println("Here are the problem inputs:\n");
-        System.out.println("The costs: " + Arrays.toString(costs) + ", and the constraints:\n");
+        System.out.println("The costs: " + Arrays.toString(costs) + ", and the " + constraints.length + " constraints:\n");
         for (int[] eq : constraints) {
             System.out.println(Arrays.toString(eq));
         }

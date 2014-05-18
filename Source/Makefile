@@ -16,7 +16,7 @@ run_slave_print:
 	java -ea -cp .:lib/xmlrpc-3.1.3/*:lib/* CrawlerServer
 
 run_master_print:
-	java -ea -cp .:lib/xmlrpc-3.1.3/*:lib/* MasterServer
+	java -Xmx4096m -ea -cp .:lib/xmlrpc-3.1.3/*:lib/* MasterServer
 
 run_slave:
 	java -ea -cp .:lib/xmlrpc-3.1.3/*:lib/* CrawlerServer > /dev/null &

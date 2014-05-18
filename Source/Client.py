@@ -39,7 +39,8 @@ while True:
     if user_request == "q":
         sys.exit()
     elif check_input(user_request):
-        print "Input is in the correct format. Now solving ..."
-        print "\n" + server.masterServer.startProblem(user_request) + "\n"
+        print "Input is in the correct format. Now solving ...\n"
+        print server.masterServer.startProblem(user_request)
+        print ""
     else:
         print "Input is not in the right format. Please try again."
