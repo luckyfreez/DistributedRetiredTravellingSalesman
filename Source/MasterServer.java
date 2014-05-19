@@ -87,9 +87,11 @@ public class MasterServer {
     }
 
 
-    // This method checks all the flight prices.
-    // TODO Change this so that it can distribute across machines.
-    // TODO Actually, we may want a time-out value ... just in case no flight exists...
+    /**
+     * This method checks all the flight prices.
+     * TODO Change this so that it can distribute across machines.
+     * TODO What happens when we have (1) no flight between two cities on same day, or (2) time-out/hanging? Can we fix these?
+     */
     public static void checkFlightPrices() {
         for (Flight f : flights) {
             Object[] queryResult = checkPrice(f.from, f.to, f.depDate);
@@ -103,8 +105,10 @@ public class MasterServer {
     }
 
 
-    // Gathers all possible combinations of flights that might be used in integer programming.
-    // This only computes the combinations. (The price check happens at checkFlightPrices.)
+    /**
+     * Gathers all possible combinations of flights that might be used in integer programming.
+     * This only computes the combinations. (The price check happens at checkFlightPrices.)
+     */
     public static void gatherFlights(String[] dates, String[] cities) {
         for (String date : dates) {
             for (int x = 0; x < cities.length; x++) {
@@ -119,7 +123,9 @@ public class MasterServer {
     }
 
 
-    // Obtains the cost (much easier than the constraints)
+    /**
+     * Obtains the cost (much easier than the constraints)
+     */
     public static int[] obtainCosts() {
         int[] costs = new int[flights.size()];
         for (int i = 0; i < flights.size(); i++) {
@@ -133,7 +139,7 @@ public class MasterServer {
     /**
      * This converts the flight information into the int[][] of constraints. A VERY important method!
      * (1) With n cities and m days, we have n+n+m constraints regarding one flight a day and entering/leaving cities
-     * (2) Prevent disjoint cycles. Here are how many we need: (3, 0), (4, 3), (5, 10), (6, 25). Do NOT do more than four or five!
+     * (2) Prevent disjoint cycles. Use power set to generate all possible groupings, then choose those with at least 2 in each
      * (3) Flight logic: we only check any pairs of flights on consecutive days here. (Defer rest to other parts of code.)
      * Note: if you're going to modify constraints, be VERY CAREFUL and CHECK INDICES, etc.
      */
@@ -144,8 +150,8 @@ public class MasterServer {
         int equationLength = flights.size() + 2;
         int extraLogicalConstraints = (numDays-1) * numCities;
 
-        // Let's generate all possible permutations; use helper methods to generate the power set
-        // Then we'll remove all those that have a set of size one (useless) or >= numCities-1
+        // (For disjoint cycle constraints) Generates all possible permutations; use helper methods to get power set
+        // Then we'll remove all those that have a set of size one or >= numCities-1 (both will be useless)
         List<ArrayList<String>> cityGroups = powerSet(cities);
         for (int i = cityGroups.size()-1; i >= 0; i--) {
             if ((cityGroups.get(i).size() <= 1) || (cityGroups.get(i).size() >= numCities-1)) {
@@ -299,13 +305,24 @@ public class MasterServer {
     } 
 
 
+    /**
+     * Helps to compute times in human-readable format. Takes in time in MILLISECONDS
+     */
+    public static String computeTime(long time) {
+        int seconds = (int) (time / 1000) % 60;
+        int minutes = (int) ((time / (1000*60)) % 60);
+        int hours   = (int) ((time / (1000*60*60)) % 24);
+        return "" + hours + ":" + minutes + ":" + seconds + "";
+    }
+
+
     /*
      * Important method! This is what the client will call, and the server uses it to solve the problem
      * It's split into a lot of stages so that it's clear what's going on. And filled with helpful prints.
      */
     public String[] startProblem(String inputFromClient) {
 
-        // Parse the input from the client.
+        // Parse the input from the client, print out some stuff for sanity checks
         String[] input = inputFromClient.split(" ");
         String startDate = input[0];
         String endDate = input[1];
@@ -320,9 +337,11 @@ public class MasterServer {
         System.out.println("All cities: " + Arrays.toString(cities));
 
         // Now generate all possible flights and check their prices. This will take a while!
+        long startTime = System.currentTimeMillis();
         gatherFlights(dates, cities);
         System.out.println("\nNow checking flight prices...");
         checkFlightPrices();
+        System.out.println("Flight check time in hours:minutes:milliseconds -- " + computeTime(System.currentTimeMillis() - startTime) + ".");
 
         // Now set up the IP problem based on the list of flights (need to get inputs)
         System.out.println("\nNow converting to an integer programming problem...");
@@ -334,13 +353,13 @@ public class MasterServer {
             System.out.println(Arrays.toString(eq));
         }
 
-        // Solve the IP problem TODO make the return value more meaningful
+        // Solve the IP problem TODO make the return value more meaningful to the user (ignorant masses)?
         System.out.println("\nNow calling Balas' algorithm...");
         Balas newProblem = new Balas(constraints, costs, flights);
         List<Flight> best_flights = newProblem.solve();
-        System.out.println(best_flights);
+        System.out.println("Flights ordered by cost: " + best_flights);
         Collections.sort(best_flights);
-        System.out.println(best_flights);
+        System.out.println("Flights ordered by date: " + best_flights);
         String[] result = new String[best_flights.size()];
         for (int i = 0; i < best_flights.size(); i++) {
             result[i] = best_flights.get(i).toString();
