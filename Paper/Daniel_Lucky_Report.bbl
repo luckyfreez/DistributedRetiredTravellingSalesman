@@ -1,4 +1,4 @@
-\begin{thebibliography}{2}
+\begin{thebibliography}{8}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -21,5 +21,53 @@ Balas, Egon.
 \newblock \doi{10.1287/opre.13.4.517}.
 \newblock URL
   \url{http://pubsonline.informs.org/doi/abs/10.1287/opre.13.4.517}.
+
+\bibitem[Christofides(1976)]{Chr76}
+Christofides, Nicos.
+\newblock Worst-case analysis of a new heuristic for the travelling salesman
+  problem.
+\newblock Technical Report 388, Graduate School of Industrial Administration,
+  Carnegie Mellon University, 1976.
+
+\bibitem[Dantzig(1963)]{GVK180926950}
+Dantzig, {George B.}
+\newblock \emph{Linear programming and extensions}.
+\newblock Rand Corporation Research Study. Princeton Univ. Press, Princeton,
+  NJ, 1963.
+\newblock URL
+  \url{http://gso.gbv.de/DB=2.1/CMD?ACT=SRCHA&SRT=YOP&IKT=1016&TRM=ppn+180926950&sourceid=fbw_bibsonomy}.
+
+\bibitem[Franklin(2002)]{opac-b1105716}
+Franklin, Joel~N.
+\newblock \emph{Methods of mathematical economics : linear and nonlinear
+  programming, fixed-point theorems}.
+\newblock Classics in applied mathematics. SIAM, Philadelphia, 2002.
+\newblock ISBN 0-89871-509-1.
+\newblock URL \url{http://opac.inria.fr/record=b1105716}.
+
+\bibitem[Gharan et~al.(2011)Gharan, Saberi, and Singh]{conf/focs/GharanSS11}
+Gharan, Shayan~Oveis, Saberi, Amin, and Singh, Mohit.
+\newblock A randomized rounding approach to the traveling salesman problem.
+\newblock In Ostrovsky, Rafail (ed.), \emph{FOCS}, pp.\  550--559. IEEE, 2011.
+\newblock ISBN 978-1-4577-1843-4.
+\newblock URL
+  \url{http://dblp.uni-trier.de/db/conf/focs/focs2011.html#GharanSS11}.
+
+\bibitem[Karp(1972)]{Kar72}
+Karp, R.
+\newblock Reducibility among combinatorial problems.
+\newblock In Miller, R. and Thatcher, J. (eds.), \emph{Complexity of Computer
+  Computations}, pp.\  85--103. Plenum Press, 1972.
+
+\bibitem[Moemke \& Svensson(2011)Moemke and
+  Svensson]{Moemke:2011:AGT:2082752.2082898}
+Moemke, Tobias and Svensson, Ola.
+\newblock Approximating graphic tsp by matchings.
+\newblock In \emph{Proceedings of the 2011 IEEE 52Nd Annual Symposium on
+  Foundations of Computer Science}, FOCS '11, pp.\  560--569, Washington, DC,
+  USA, 2011. IEEE Computer Society.
+\newblock ISBN 978-0-7695-4571-4.
+\newblock \doi{10.1109/FOCS.2011.56}.
+\newblock URL \url{http://dx.doi.org/10.1109/FOCS.2011.56}.
 
 \end{thebibliography}

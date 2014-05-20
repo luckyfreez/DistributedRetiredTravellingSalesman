@@ -315,9 +315,9 @@ public class Balas {
 
                 // Periodically print out progress to reassure the viewer
                 expanded_nodes++; 
-                // if (expanded_nodes % 10000 == 0) {
-                System.out.println("Node #" + expanded_nodes + "; Path: " + node.path);
-                //}
+                if (expanded_nodes % 10000 == 0) {
+                    System.out.println("Node #" + expanded_nodes + "; Path: " + node.path);
+                }
 
                 if (node.path.size() < num_variables) {
 
@@ -342,10 +342,9 @@ public class Balas {
                         if (cost_child1 < best_cost) {
                             // If this is a candidate, then check to make sure that flight is logically consistent.
                             // If not, we MAY add in a future flight later in between to make things work, so that's why we have a special case
-                            System.out.println("Now in case 1, checking flight logic...");
+                            // System.out.println("Now in case 1, checking flight logic...");
                             if (check_flight_logic(path1, variable_ordering)) {
-                                System.out.println("Case 1 update with node #" + expanded_nodes + "; path: " + node.path);
-                                System.out.println("new cost: " + cost_child1 + "; new path: " + current_path1);
+                                System.out.println("Case 1 update, node #" + expanded_nodes + ", new cost: " + cost_child1 + ", new path: " + current_path1);
                                 best_cost = cost_child1;
                                 best_path = current_path1;
                             } else {
@@ -367,10 +366,9 @@ public class Balas {
                     if (cost_child2 != -1) {
                         if (cost_child2 < best_cost) {
                             // Now check if this candidate works
-                            System.out.println("Now in case 2, checking flight logic...");
+                            // System.out.println("Now in case 2, checking flight logic...");
                             if (check_flight_logic(path2, variable_ordering)) {
-                                System.out.println("Case 2 update with node #" + expanded_nodes + "; path: " + node.path);
-                                System.out.println("new cost: " + cost_child2 + "; new path: " + current_path2);
+                                System.out.println("Case 2 update, node#" + expanded_nodes + ", new cost: " + cost_child2 + ", new path: " + current_path2);
                                 best_cost = cost_child2;
                                 best_path = current_path2;
                             } else {

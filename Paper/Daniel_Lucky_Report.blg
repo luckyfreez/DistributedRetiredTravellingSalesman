@@ -3,44 +3,48 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: Daniel_Lucky_Report.aux
 The style file: icml2014.bst
 Database file #1: Daniel_Lucky_Report.bib
-You've used 2 entries,
+A bad cross reference---entry "conf/focs/GharanSS11"
+refers to entry "conf/focs/2011", which doesn't exist
+Warning--I didn't find a database entry for "conf/focs/2011"
+You've used 8 entries,
             2773 wiz_defined-function locations,
-            609 strings with 5373 characters,
-and the built_in function-call counts, 916 in all, are:
-= -- 78
-> -- 49
-< -- 1
-+ -- 17
-- -- 15
-* -- 76
-:= -- 153
-add.period$ -- 9
-call.type$ -- 2
-change.case$ -- 10
-chr.to.int$ -- 2
-cite$ -- 4
-duplicate$ -- 41
-empty$ -- 74
-format.name$ -- 17
-if$ -- 185
+            667 strings with 6797 characters,
+and the built_in function-call counts, 3697 in all, are:
+= -- 358
+> -- 152
+< -- 10
++ -- 53
+- -- 45
+* -- 259
+:= -- 579
+add.period$ -- 40
+call.type$ -- 8
+change.case$ -- 35
+chr.to.int$ -- 8
+cite$ -- 16
+duplicate$ -- 193
+empty$ -- 319
+format.name$ -- 55
+if$ -- 807
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 3
-newline$ -- 21
-num.names$ -- 8
-pop$ -- 20
+missing$ -- 10
+newline$ -- 59
+num.names$ -- 36
+pop$ -- 71
 preamble$ -- 1
-purify$ -- 9
+purify$ -- 30
 quote$ -- 0
-skip$ -- 29
+skip$ -- 141
 stack$ -- 0
-substring$ -- 25
-swap$ -- 2
-text.length$ -- 0
+substring$ -- 124
+swap$ -- 34
+text.length$ -- 4
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 17
+type$ -- 73
 warning$ -- 0
-while$ -- 7
+while$ -- 35
 width$ -- 0
-write$ -- 39
+write$ -- 140
+(There was 1 error message)

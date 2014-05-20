@@ -336,12 +336,12 @@ public class MasterServer {
         System.out.println("All dates: " + Arrays.toString(dates));
         System.out.println("All cities: " + Arrays.toString(cities));
 
-        // Now generate all possible flights and check their prices. This will take a while!
+        // Now generate all possible flights and check their prices. This will take a while! (time it)
         long startTime = System.currentTimeMillis();
         gatherFlights(dates, cities);
         System.out.println("\nNow checking flight prices...");
         checkFlightPrices();
-        System.out.println("Flight check time in hours:minutes:milliseconds -- " + computeTime(System.currentTimeMillis() - startTime) + ".");
+        String flightCheckTime = computeTime(System.currentTimeMillis() - startTime);
 
         // Now set up the IP problem based on the list of flights (need to get inputs)
         System.out.println("\nNow converting to an integer programming problem...");
@@ -353,10 +353,15 @@ public class MasterServer {
             System.out.println(Arrays.toString(eq));
         }
 
-        // Solve the IP problem TODO make the return value more meaningful to the user (ignorant masses)?
+        // Solve the IP problem (also time how long it takes)
         System.out.println("\nNow calling Balas' algorithm...");
         Balas newProblem = new Balas(constraints, costs, flights);
+        startTime = System.currentTimeMillis();
         List<Flight> best_flights = newProblem.solve();
+        String balasTime = computeTime(System.currentTimeMillis() - startTime);
+
+        // Now output meaningful messages to the user and pass the list back to the client.
+        System.out.println("Original problem from client was " + inputFromClient);
         System.out.println("Flights ordered by cost: " + best_flights);
         Collections.sort(best_flights);
         System.out.println("Flights ordered by date: " + best_flights);
@@ -364,6 +369,8 @@ public class MasterServer {
         for (int i = 0; i < best_flights.size(); i++) {
             result[i] = best_flights.get(i).toString();
         }
+        System.out.println("Flight check time in hours:minutes:milliseconds -- " + flightCheckTime + ".");
+        System.out.println("DFS search time in hours:minutes:milliseconds -- " + balasTime + ".");
         return result;
     }
 

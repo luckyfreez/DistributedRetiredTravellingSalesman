@@ -14,28 +14,35 @@
 % Stuff that I added in (Daniel Seita) 
 \usepackage{amsmath,amssymb,amsthm,verbatim}
 \graphicspath{ {Images/} }
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{conj}[thm]{Conjecture}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{exa}[thm]{Example}
+\newtheorem{defi}[thm]{Definition}
+\newtheorem{exe}[thm]{Exercise}
+\newtheorem{rek}[thm]{Remark}
+\newtheorem{que}[thm]{Question}
+\newtheorem{prob}[thm]{Problem}
+\newtheorem{cla}[thm]{Claim}
+% End of stuff I added in
 
-% As of 2011, we use the hyperref package to produce hyperlinks in the
-% resulting PDF.  If this breaks your system, please commend out the
-% following usepackage line and replace \usepackage{icml2014} with
-% \usepackage[nohyperref]{icml2014} above.
+% As of 2011, we use the hyperref package to produce hyperlinks in the resulting PDF.  If this breaks your system, please commend out the following
+% usepackage line and replace \usepackage{icml2014} with \usepackage[nohyperref]{icml2014} above.
 \usepackage{hyperref}
 
-% Packages hyperref and algorithmic misbehave sometimes.  We can fix
-% this with the following command.
+% Packages hyperref and algorithmic misbehave sometimes.  We can fix this with the following command.
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 
-% Employ the following version of the ``usepackage'' statement for
-% submitting the draft version of the paper for review.  This will set
-% the note in the first column to ``Under review.  Do not distribute.''
+% Employ the following version of the ``usepackage'' statement for submitting the draft version of the paper for review.  This will set the note in
+% the first column to ``Under review.  Do not distribute.''
 %\usepackage{icml2014} 
-% Employ this version of the ``usepackage'' statement after the paper has
-% been accepted, when creating the final version.  This will set the
-% note in the first column to ``Proceedings of the...''
+% Employ this version of the ``usepackage'' statement after the paper has been accepted, when creating the final version.  This will set the note in
+% the first column to ``Proceedings of the...''
 \usepackage[accepted]{icml2014}
 
-% The \icmltitle you define below is probably too long as a header.
-% Therefore, a short form for the running title is supplied here:
+% The \icmltitle you define below is probably too long as a header.  Therefore, a short form for the running title is supplied here:
 \icmltitlerunning{The Distributed Retired Traveling Salesman Problem}
 
 \begin{document} 
@@ -43,69 +50,129 @@
 \twocolumn[
 \icmltitle{The Distributed Retired Traveling Salesman Problem}
 
-% It is OKAY to include author information, even for blind
-% submissions: the style file will automatically remove it for you
-% unless you've provided the [accepted] option to the icml2014
-% package.
+% It is OKAY to include author information, even for blind submissions: the style file will automatically remove it for you unless you've provided the
+% [accepted] option to the icml2014 package.
 \icmlauthor{Daniel Seita}{dts1@williams.edu}
 \icmlauthor{Ziang Zhang}{zz2@williams.edu}
 \icmladdress{Department of Computer Science, Williams College, Williamstown, MA 01267 USA}
 
-% You may provide any keywords that you 
-% find helpful for describing your paper; these are used to populate 
-% the "keywords" metadata in the PDF but will not be shown in the document
+% You may provide any keywords that you find helpful for describing your paper; these are used to populate the "keywords" metadata in the PDF but will
+% not be shown in the document
 \icmlkeywords{distributed systems}
 
 \vskip 0.3in
 ]
 
 \begin{abstract} 
-The use of major online travel agencies has made scheduling long-term travel much easier by allowing users to easily select a set of flights to
-purchase tickets from. Current travel agencies allow users to plan out trips involving airlines to more than one major city, but they require (1)
-specific dates for each city and (2) an ordering. We propose a system that does not require to burden the user with this type of decision.  It
-essentially solves a harder version of the Traveling Salesman Problem since costs are not constant between two cities.  Assuming the number of cities
-is limited to a reasonable number for a trip (e.g., four) then this algorithm should successfully find the cheapest cost flight under a number of weak
-assumptions. We present the theoretical and systematic components of the project, discuss empirical results, and suggest future work.
+The use of major online travel agencies has made scheduling long-term travel much easier by allowing users to easily identify a set of flights in just
+a few clicks. Current travel agencies allow users to plan out long-term trips involving flights to more than two cities, but they require specific
+arrival and departure dates for each city and a city ordering. We present a system that does not burden the user with these decisions. Specifically,
+our code takes in two required inputs: a list of cities the user wishes to travel to, and a date range over which they are willing to travel, and
+outputs the cheapest set of flights within that range that form a valid route. It essentially solves a harder version of the Traveling Salesman
+Problem since costs are not constant between two cities. Under several weak assumptions, and assuming that the number of cities and days is
+sufficiently limited, then our algorithm should successfully find the cheapest cost flight in a reasonable amount of time. We present the theoretical
+and systematic components of the project and discuss empirical results.
 \end{abstract} 
 
 \section{Introduction and Motivation}\label{sec:intro}
 
-The use of major online travel agencies, such as Travelocity and Kayak, has made scheduling long-term travel much easier by allowing users to easily
-select a set of flights to purchase tickets from. People use a combination of factors to help them make their decision, such as the price of all the
-flights and the days they wish to land and depart from a city. Current travel agencies allow users to plan out trips involving airlines to more than
-one major city, but they require (1) specific dates for each city and (2) an ordering.
+The use of major online travel agencies, such as Travelocity\footnote{\url{www.travelocity.com}} and Kayak\footnote{\url{www.kayak.com}}, has made
+scheduling long-term travel much easier by allowing users to easily select a set of flights to purchase tickets from. People use a combination of
+factors to help them make their decision, such as the total price of the flights and the days they wish to land and depart from a city. Current travel
+agencies allow users to plan out trips involving airlines to multiple destinations (see Figure~\ref{fig:travelocity} for an example using
+Travelocity), but they require (1) specific dates for each city and (2) an ordering.
 
-For instance, if the first author of this paper wants to visit Paris, London, and Tokyo from June 1 to July 1, and he starts out in New York City
-(NYC), he may want to schedule flights such that he departs from NYC to arrive in Paris on June 1, and then departs from Paris so that he arrives in
-London on June 10, and then depart there to be in Tokyo on June 20, and then fly back to NYC on July 1. But suppose the first author is retired (and
-presumably, is rich, or stole money from the second author). Thus, he has substantial free time, so he is not restricted on which days he can be in
-particular cities. He is still prudent, so he wants to schedule trips such that airline travel costs are \emph{minimal}. This is challenging using
-current agencies, which motivates us to produce a more general service that can solve this problem:
+This limitation can make searching for flight routes time-consuming for users who are not restricted to arriving at cities on particular dates. For
+instance, suppose one resides in New York City (NYC) and wants to schedule a summer trip to Paris, London, and Tokyo from June 1 to June 20, and it
+does not matter to him how long he stays in a city. Suppose that it also does not matter the ordering that he arrives at the cities. Thus, the factors
+that matter\footnote{For brevity, we list a high-level overview of the problem without getting into too many technical details;
+Section~\ref{sec:limitations} describes additional assumptions we impose on the problem to make it practical.} are:
 
 \begin{itemize}
-    \item a date range from $X$ to $Y$ (with $X$ occurring earlier than $Y$),
-    \item and a list of destinations to reach, $d_1, d_2, \ldots, d_m$, with $d_1$ equal to $d_m$ only if the user wants to end up at the same spot
-where he started. (We assume for the sake of realism that these destinations are all reachable by air travel; a number of other assumptions will be
-discussed in Section~\ref{sec:limitations})
+    \item The full flight route occurs within the date range (in this case, between June 1 and June 20).
+    \item The flight route must arrive and leave at least once for NYC, Paris, London, and Tokyo.
+    \item The flight route is valid and logically consistent. For instance, if the first flight takes him from NYC to Tokyo, the second flight in the
+    route should not depart from a place other than Tokyo.
 \end{itemize}
 
-The goal is to find the \textbf{cheapest}, valid schedule of flights $f_1, f_2, \ldots, f_n$, with $n > m$, such that it touches each city at least
-once\footnote{The cheapest route of flights to visit these cities may, in fact, require the traveler to visit an airport more than once.}. We will use
-the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}} database to obtain information about our flights; the information itself will
-be extracted with our own web crawler. We coin this ``The Retired Traveler Problem,'' primarily because if we assume the dates are set far enough
-apart, it would interfere with a non-retired person's occupation. For details on the real problem, see sources such as~\cite{Applegate:2007:TSP:1374811}.
+There are a vast pool of valid flight routes. It is reasonable to assume that out of all these, one would want the \emph{cheapest} route.
+Unfortunately, finding the cheapest route possible is challenging using current agencies, because they require knowing the arrival and departure dates
+for each city. The reason for this is simple: the problem of finding this flight route is a hard problem to solve.
 
-Our project is a combination of mathematics and systems. Sections~\ref{sec:math} and~\ref{sec:systems} describe our objectives in further detail.
+In fact, this problem is very similar to the well-known Traveling Salesman Problem~\cite{Applegate:2007:TSP:1374811}, which asks if there exists a
+cycle in a graph that touches each node exactly once (i.e., a Hamiltonian Path). Each edge has a cost associated with it, and the decision version of
+the problem, which asks if there exists a valid Hamiltonian path with cost bounded by $B$, is NP-complete~\cite{Kar72}. In our case, we do not force
+the user to visit each city exactly once because the cheapest flight through a sequence of cities \emph{may require} visiting a city more than once.
+
+What makes our problem (likely) much harder than the Traveling Salesman Problem is that the cost of an edge between two nodes in our graph (i.e., two
+cities) is not constant, because flight prices frequently change. We coin our problem the ``Distributed Retired Traveling Salesman Problem.'' The
+``Retired'' portion comes from how we assume that whoever is planning this trip is retired, because otherwise, how would he or she have the time and
+money? The ``Distributed'' part is because we incorporate concepts from the design and practice of distributed systems to build software that can
+tackle this problem. We discuss the mathematical and systems portions of our solution in Sections~\ref{sec:math} and~\ref{sec:systems}, respectively.
+
+\begin{figure}[t]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{travelocity}}
+\caption{Travelocity lets users select multiple destinations.}
+\label{fig:travelocity}
+\end{center}
+\vskip -0.2in
+\end{figure}
+
+\section{Related Work}\label{sec:related_work}
+
+The Traveling Salesman Problem (TSP) is one of the oldest and most well-known problems in combinatorial optimization. While no exact, polynomial time
+solution for the decision problem is known, there is a $3/2$-approximation algorithm due to Christofides~\cite{Chr76}. That algorithm was long the
+standard approximation algorithm until a stunning recent result in~\cite{conf/focs/GharanSS11}, which has thus spurred a cascade of additional
+research relating to the TSP (e.g.,~\cite{Moemke:2011:AGT:2082752.2082898}).
+
+In contrast to the attention devoted to TSP, there appears to be very little research focusing on the special case of our problem, which introduces
+additional challenges. These can be mathematically-oriented, such as how to manage the variable costs, or systems-oriented, such as how to even obtain
+the actual flight costs. We have found nothing in the literature that particularly fits our problem.
 
 \section{Mathematical Component}\label{sec:math}
 
-\subsection{An Integer Programming Formulation}
+The mathematical portion of our work uses a technique known as \emph{binary integer linear programming}, which falls under the broader category of
+optimization techniques. The goal in optimization is straightforward: given a set of variables and a set of constraints, the goal is to find the best,
+feasible solution according to some criteria, such as cost (in which case, ``best'' means ``minimal'').
 
-We will solve this problem using a technique known as \textbf{integer programming}. This is loosely based off of the many ways of solving the
-\emph{traveling salesman problem}, where the goal is to hit each city exactly once with fixed costs. Our problem is more difficult than the traveling
-salesman problem, because our costs are not fixed. The cheapest way of going from city $i$ to city $j$ will vary depending on the day. (The other
-major difference between our problem and the traveling salesman problem is that we are assuming we can touch each city more than once\footnote{This
-may not actually make our problem much harder but the varying costs certainly will.}.)
+\subsection{Linear and Integer Programming}
+
+One of the most commonly-used optimization techniques is linear programming, introduced by Dantzig in~\cite{GVK180926950}.
+
+\begin{defi}\label{defi:linear_programming}
+A \emph{linear programming problem} consists of three components: 
+\begin{enumerate}
+    \item a finite collection of linear inequalities or equations in a finite number of unknowns, $x_1, \ldots, x_n$;
+    \item sign constraints $x_i \ge 0$ on some (possibly empty) subset of the unknowns;
+    \item a linear function to be minimized or maximized.
+\end{enumerate}
+An assignment to the variables $x_1, \ldots, x_n$ satisfying the first two conditions is a \emph{feasible} solution. If it also satisfies the third,
+then it is an \emph{optimal} solution~\cite{opac-b1105716}.
+\end{defi}
+
+Linear programming has tremendous applications, and a full list of them would be impossible to create. Some problems well-suited to linear programming
+include investment management, scheduling problems, and the diet problem. (The last problem concerns the rather interesting question of what is the
+minimum cost of a nutritionally adequate diet.) The reason for linear programming's great versatility is the ease at which constraints can be added to
+a model.
+
+More specific cases of linear programming are integer and binary linear programming. (Sometimes we drop the ``linear'' part for brevity.)
+
+\begin{defi}\label{defi:integer_programming}
+An \emph{integer programming problem} is a linear programming problem with the added restriction that all variables (i.e., unknowns) $x_1, \ldots,
+x_n$ are integers.
+\end{defi}
+
+\begin{defi}\label{defi:binary_programming}
+A \emph{binary integer programming problem} is an integer programming problem with the added restriction that all variables $x_1, \ldots,
+x_n$ are such that $x_i \in \{0,1\}$.
+\end{defi}
+
+We see that our problem is particularly suited to binary integer programming, because all the possible flights we could take can be viewed as a set of
+binary random variables, each of which has value 1 if we decide to take that flight, and 0 otherwise. We now formulate this problem in more detail.
+
+\subsection{An Integer Programming Formulation}
 
 We define our problem formulation as follows.
 
@@ -164,7 +231,14 @@ The previous constraint ensures that at least one leg of the tour connects citie
 for every way we can split up the cities into groups. Of course, the need to implement these kind of constraints to prevent sub-tours is why integer
 programming is so difficult. Fortunately, we will assume the user is going to keep the number of cities reasonably small.
 
+here, we shoudl also add in prof miller's great example based on why int prog is so hard
+
+
 \subsection{Implementation Details}
+
+We will use the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}} database to obtain information about our flights; the information
+itself will be extracted with our own web crawler. We coin this ``The Retired Traveler Problem,'' primarily because if we assume the dates are set far
+enough apart, it would interfere with a non-retired person's occupation. For details on the real problem, see sources such as.
 
 How to best implement this is still an open question. There are algorithms for implementing integer programming. The question is whether we
 can efficiently use our \emph{distributed systems}. There are a number of results based on parallelizing integer programming in the literature. We
@@ -250,10 +324,22 @@ the May 13 ({\bf UPDATE: May 11}) date. Then we will work on fixing up this pape
 
 \section*{Acknowledgments}
  
-{\bf TODO}
+We thank Professor Jeannie Albrecht for teaching the course that inspired this project. We are also indebted to Professor Steven Miller for
+introducing us to the world of operations research.
 
 \bibliography{Daniel_Lucky_Report}
 \bibliographystyle{icml2014}
+
+
+% Jeannie doesn't need to read this if she doesn't want to...
+\onecolumn
+
+\appendix
+\section{Balas' Additive Algorithm}
+
+{\bf TODO}
+
+
 
 \end{document} 
 
