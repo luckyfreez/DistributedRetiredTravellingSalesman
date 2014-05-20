@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  19 MAY 2014 21:54
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  20 MAY 2014 02:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -203,13 +203,21 @@ Package: amsthm 2004/08/06 v2.20
 \thm@headsep=\skip60
 \dth@everypar=\toks28
 )
+(/usr/local/texlive/2013/texmf-dist/tex/latex/enumitem/enumitem.sty
+Package: enumitem 2011/09/28 v3.5.2 Customized lists
+\labelindent=\skip61
+\enit@outerparindent=\dimen118
+\enit@toks=\toks29
+\enit@inbox=\box30
+\enitdp@description=\count112
+)
 (/usr/local/texlive/2013/texmf-dist/tex/latex/tools/verbatim.sty
 Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
-\every@verbatim=\toks29
-\verbatim@line=\toks30
+\every@verbatim=\toks30
+\verbatim@line=\toks31
 \verbatim@in@stream=\read1
 )
-\c@thm=\count112
+\c@thm=\count113
 
 (/usr/local/texlive/2013/texmf-dist/tex/latex/hyperref/hyperref.sty
 Package: hyperref 2012/11/06 v6.83m Hypertext links for LaTeX
@@ -268,14 +276,14 @@ Package: auxhook 2011/03/04 v1.3 Hooks for auxiliary files (HO)
 (/usr/local/texlive/2013/texmf-dist/tex/latex/oberdiek/kvoptions.sty
 Package: kvoptions 2011/06/30 v3.11 Key value format for package options (HO)
 )
-\@linkdim=\dimen118
-\Hy@linkcounter=\count113
-\Hy@pagecounter=\count114
+\@linkdim=\dimen119
+\Hy@linkcounter=\count114
+\Hy@pagecounter=\count115
 
 (/usr/local/texlive/2013/texmf-dist/tex/latex/hyperref/pd1enc.def
 File: pd1enc.def 2012/11/06 v6.83m Hyperref: PDFDocEncoding definition (HO)
 )
-\Hy@SavedSpaceFactor=\count115
+\Hy@SavedSpaceFactor=\count116
 
 (/usr/local/texlive/2013/texmf-dist/tex/latex/latexconfig/hyperref.cfg
 File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
@@ -287,17 +295,17 @@ Package hyperref Info: Plain pages OFF on input line 4458.
 Package hyperref Info: Backreferencing OFF on input line 4463.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4688.
-\c@Hy@tempcnt=\count116
+\c@Hy@tempcnt=\count117
 
 (/usr/local/texlive/2013/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip11
 Package: url 2006/04/12  ver 3.3  Verb mode for urls, etc.
 )
 LaTeX Info: Redefining \url on input line 5041.
-\XeTeXLinkMargin=\dimen119
-\Fld@menulength=\count117
-\Field@Width=\dimen120
-\Fld@charsize=\dimen121
+\XeTeXLinkMargin=\dimen120
+\Fld@menulength=\count118
+\Field@Width=\dimen121
+\Fld@charsize=\dimen122
 Package hyperref Info: Hyper figures OFF on input line 6295.
 Package hyperref Info: Link nesting OFF on input line 6300.
 Package hyperref Info: Hyper index ON on input line 6303.
@@ -307,37 +315,37 @@ Package hyperref Info: Link coloring with OCG OFF on input line 6320.
 Package hyperref Info: PDF/A mode OFF on input line 6325.
 LaTeX Info: Redefining \ref on input line 6365.
 LaTeX Info: Redefining \pageref on input line 6369.
-\Hy@abspage=\count118
-\c@Item=\count119
-\c@Hfootnote=\count120
+\Hy@abspage=\count119
+\c@Item=\count120
+\c@Hfootnote=\count121
 )
 
 Package hyperref Message: Driver (autodetected): hpdftex.
 
 (/usr/local/texlive/2013/texmf-dist/tex/latex/hyperref/hpdftex.def
 File: hpdftex.def 2012/11/06 v6.83m Hyperref driver for pdfTeX
-\Fld@listcount=\count121
-\c@bookmark@seq@number=\count122
+\Fld@listcount=\count122
+\c@bookmark@seq@number=\count123
 
 (/usr/local/texlive/2013/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty
 Package: rerunfilecheck 2011/04/15 v1.7 Rerun checks for auxiliary files (HO)
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 82.
 )
-\Hy@SectionHShift=\skip61
+\Hy@SectionHShift=\skip62
 )
 (./icml2014.sty
 Package: icml2014 2014/01/01 v2.0 ICML Conference Style File
  (./fancyhdr.sty
-\fancy@headwidth=\skip62
-\f@ncyO@elh=\skip63
-\f@ncyO@erh=\skip64
-\f@ncyO@olh=\skip65
-\f@ncyO@orh=\skip66
-\f@ncyO@elf=\skip67
-\f@ncyO@erf=\skip68
-\f@ncyO@olf=\skip69
-\f@ncyO@orf=\skip70
+\fancy@headwidth=\skip63
+\f@ncyO@elh=\skip64
+\f@ncyO@erh=\skip65
+\f@ncyO@olh=\skip66
+\f@ncyO@orh=\skip67
+\f@ncyO@elf=\skip68
+\f@ncyO@erf=\skip69
+\f@ncyO@olf=\skip70
+\f@ncyO@orf=\skip71
 )
 (/usr/local/texlive/2013/texmf-dist/tex/latex/graphics/color.sty
 Package: color 2005/11/14 v1.0j Standard LaTeX Color (DPC)
@@ -351,19 +359,19 @@ Package color Info: Driver file: pdftex.def on input line 130.
 Package: eso-pic 2010/10/06 v2.0c eso-pic (RN)
 )
 Package hyperref Info: Option `colorlinks' set `true' on input line 96.
-\titrun=\box30
-\captionbox=\box31
-\captionboxwid=\dimen122
-\icmlrulerbox=\box32
-\icmlrulercount=\count123
-\icmlruleroffset=\dimen123
-\cv@lineheight=\dimen124
-\cv@boxheight=\dimen125
-\cv@tmpbox=\box33
-\cv@refno=\count124
-\cv@tot=\count125
-\cv@tmpc@=\count126
-\cv@tmpc=\count127
+\titrun=\box31
+\captionbox=\box32
+\captionboxwid=\dimen123
+\icmlrulerbox=\box33
+\icmlrulercount=\count124
+\icmlruleroffset=\dimen124
+\cv@lineheight=\dimen125
+\cv@boxheight=\dimen126
+\cv@tmpbox=\box34
+\cv@refno=\count125
+\cv@tot=\count126
+\cv@tmpc@=\count127
+\cv@tmpc=\count128
 )
 (./Daniel_Lucky_Report.aux)
 \openout1 = `Daniel_Lucky_Report.aux'.
@@ -389,17 +397,17 @@ File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 (/usr/local/texlive/2013/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count128
-\scratchdimen=\dimen126
-\scratchbox=\box34
-\nofMPsegments=\count129
-\nofMParguments=\count130
-\everyMPshowfont=\toks31
-\MPscratchCnt=\count131
-\MPscratchDim=\dimen127
-\MPnumerator=\count132
-\makeMPintoPDFobject=\count133
-\everyMPtoPDFconversion=\toks32
+\scratchcounter=\count129
+\scratchdimen=\dimen127
+\scratchbox=\box35
+\nofMPsegments=\count130
+\nofMParguments=\count131
+\everyMPshowfont=\toks32
+\MPscratchCnt=\count132
+\MPscratchDim=\dimen128
+\MPnumerator=\count133
+\makeMPintoPDFobject=\count134
+\everyMPtoPDFconversion=\toks33
 ) (/usr/local/texlive/2013/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
 
@@ -415,7 +423,7 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-\AtBeginShipoutBox=\box35
+\AtBeginShipoutBox=\box36
 Package hyperref Info: Link coloring ON on input line 48.
 
 (/usr/local/texlive/2013/texmf-dist/tex/latex/hyperref/nameref.sty
@@ -424,7 +432,7 @@ Package: nameref 2012/10/27 v2.43 Cross-referencing by name of section
 (/usr/local/texlive/2013/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
-\c@section@level=\count134
+\c@section@level=\count135
 )
 LaTeX Info: Redefining \ref on input line 48.
 LaTeX Info: Redefining \pageref on input line 48.
@@ -472,65 +480,48 @@ LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
 
 
 ]
-<Images/travelocity.png, id=38, 503.8825pt x 372.39125pt>
+<Images/travelocity.png, id=39, 503.8825pt x 372.39125pt>
 File: Images/travelocity.png Graphic file (type png)
 
 <use Images/travelocity.png>
-Package pdftex.def Info: Images/travelocity.png used on input line 116.
+Package pdftex.def Info: Images/travelocity.png used on input line 117.
 (pdftex.def)             Requested size: 234.8775pt x 173.5863pt.
  [2 <./Images/travelocity.png>]
-<Images/bad_solution.png, id=73, 496.85625pt x 132.495pt>
+<Images/bad_solution.png, id=75, 496.85625pt x 132.495pt>
 File: Images/bad_solution.png Graphic file (type png)
 
 <use Images/bad_solution.png>
-Package pdftex.def Info: Images/bad_solution.png used on input line 216.
+Package pdftex.def Info: Images/bad_solution.png used on input line 233.
 (pdftex.def)             Requested size: 234.8775pt x 62.63454pt.
 
-Overfull \hbox (27.2202pt too wide) detected at line 228
-[] []\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x
-[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x[
-] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x[]
- \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x[] 
-\OT1/cmr/m/n/10 + \OML/cmm/m/it/10 x[]\OT1/cmr/m/n/10 ) \OMS/cmsy/m/n/10 ^^U \O
-T1/cmr/m/n/10 1\OML/cmm/m/it/10 :
- []
+
+Package amsmath Warning: Foreign command \atopwithdelims;
+(amsmath)                \frac or \genfrac should be used instead
+(amsmath)                 on input line 253.
+
+[3 <./Images/bad_solution.png>]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 246--246
-[][][][][]$\OT1/pcr/m/n/9 http : / / www-[]01 . ibm . com / software / commerce
- /
- []
-
-<Images/servers.png, id=80, 396.48125pt x 200.75pt>
+<Images/servers.png, id=111, 396.48125pt x 200.75pt>
 File: Images/servers.png Graphic file (type png)
  <use Images/servers.png>
-Package pdftex.def Info: Images/servers.png used on input line 254.
+Package pdftex.def Info: Images/servers.png used on input line 306.
 (pdftex.def)             Requested size: 234.8775pt x 118.92851pt.
+
+<Images/front_end_server.png, id=116, 782.925pt x 386.44376pt>
+File: Images/front_end_server.png Graphic file (type png)
+
+<use Images/front_end_server.png>
+Package pdftex.def Info: Images/front_end_server.png used on input line 325.
+(pdftex.def)             Requested size: 234.8775pt x 115.92812pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [3 <./Images/bad_solution.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 290--294
+ [4 <./Images/servers.png>]
+Underfull \vbox (badness 2103) has occurred while \output is active []
 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 295--296
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 302--303
-[]\OT1/ptm/m/n/10 We have im-ple-mented Balas' Ad-di-tive Al-go-
- []
-
-
-Underfull \hbox (badness 1072) in paragraph at lines 302--303
-\OT1/ptm/m/n/10 rithm ([][]Balas[][], [][]1965[][]) for ef-fi-ciently solv-ing 
-bi-nary
- []
-
-[4 <./Images/servers.png>] (./Daniel_Lucky_Report.bbl
+ [5 <./Images/front_end_server.png>] (./Daniel_Lucky_Report.bbl
 Underfull \hbox (badness 2735) in paragraph at lines 33--39
 []\OT1/ptm/m/n/10 Dantzig, George B.  \OT1/ptm/m/it/10 Lin-ear pro-gram-ming an
 d ex-
@@ -558,39 +549,37 @@ Underfull \hbox (badness 10000) in paragraph at lines 33--39
  []
 
 
-Underfull \hbox (badness 2486) in paragraph at lines 64--72
+Underfull \hbox (badness 2486) in paragraph at lines 75--83
 []\OT1/ptm/m/n/10 Moemke, To-bias and Svens-son, Ola.  Ap-prox-i-mat-
  []
 
 
-Underfull \hbox (badness 1314) in paragraph at lines 64--72
+Underfull \hbox (badness 1314) in paragraph at lines 75--83
 \OT1/ptm/m/n/10 ing graphic tsp by match-ings.  In \OT1/ptm/m/it/10 Pro-ceed-in
 gs of
  []
 
-) [5
+) [6]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 469.
+ [7
 
 ]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 344.
- [6
-
-]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 344.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 469.
  (./Daniel_Lucky_Report.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 344.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 344.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 469.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 469.
 Package rerunfilecheck Info: File `Daniel_Lucky_Report.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 344.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 469.
  ) 
 Here is how much of TeX's memory you used:
- 7364 strings out of 493315
- 104107 string characters out of 6137904
- 199040 words of memory out of 5000000
- 10628 multiletter control sequences out of 15000+600000
+ 7694 strings out of 493315
+ 109979 string characters out of 6137904
+ 205815 words of memory out of 5000000
+ 10938 multiletter control sequences out of 15000+600000
  31801 words of font info for 69 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 29i,11n,45p,257b,377s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 29i,11n,45p,257b,421s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/te
 xlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/tex
@@ -599,16 +588,17 @@ ve/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive
 /2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2
 013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2013
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2013/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2013/te
-xmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2013/texmf-dist
-/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/typ
-e1/urw/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/tim
-es/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri8a
-.pfb>
-Output written on Daniel_Lucky_Report.pdf (6 pages, 302531 bytes).
+texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2013/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2013/texm
+f-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2013/texmf-dist/f
+onts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1
+/urw/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times
+/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri8a.p
+fb>
+Output written on Daniel_Lucky_Report.pdf (7 pages, 392302 bytes).
 PDF statistics:
- 196 PDF objects out of 1000 (max. 8388607)
- 169 compressed objects within 2 object streams
- 54 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 249 PDF objects out of 1000 (max. 8388607)
+ 218 compressed objects within 3 object streams
+ 69 named destinations out of 1000 (max. 500000)
+ 21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

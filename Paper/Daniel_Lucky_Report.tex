@@ -12,7 +12,7 @@
 \usepackage{algorithmic}
 
 % Stuff that I added in (Daniel Seita) 
-\usepackage{amsmath,amssymb,amsthm,verbatim}
+\usepackage{amsmath,amssymb,amsthm,enumitem,verbatim}
 \graphicspath{ {Images/} }
 \newtheorem{thm}{Theorem}[section]
 \newtheorem{conj}[thm]{Conjecture}
@@ -84,25 +84,26 @@ Travelocity), but they require (1) specific dates for each city and (2) an order
 
 This limitation can make searching for flight routes time-consuming for users who are not restricted to arriving at cities on particular dates. For
 instance, suppose one resides in New York City (NYC) and wants to schedule a summer trip to Paris, London, and Tokyo from June 1 to June 20, and it
-does not matter to him how long he stays in a city. Suppose that it also does not matter the ordering that he arrives at the cities. Thus, the factors
-that matter\footnote{For brevity, we list a high-level overview of the problem without getting into too many technical details;
-Section~\ref{sec:limitations} describes additional assumptions we impose on the problem to make it practical.} are:
+does not matter to him how long he stays in a city. Suppose that it also does not matter the ordering that he arrives at the cities. Thus (for now) we
+will only care about the following factors\footnote{For brevity, we list a high-level overview of the problem without getting into too many technical
+details; Section~\ref{sec:limitations} describes some of our assumptions and limitations.}:
 
-\begin{itemize}
+\begin{itemize}[noitemsep]
     \item The full flight route occurs within the date range (in this case, between June 1 and June 20).
     \item The flight route must arrive and leave at least once for NYC, Paris, London, and Tokyo.
     \item The flight route is valid and logically consistent. For instance, if the first flight takes him from NYC to Tokyo, the second flight in the
     route should not depart from a place other than Tokyo.
 \end{itemize}
 
-There are a vast pool of valid flight routes. It is reasonable to assume that out of all these, one would want the \emph{cheapest} route.
-Unfortunately, finding the cheapest route possible is challenging using current agencies, because they require knowing the arrival and departure dates
-for each city. The reason for this is simple: the problem of finding this flight route is a hard problem to solve.
+There are a vast pool of valid flight routes. We might assume that out of all these, one would want the \emph{cheapest} route. Of course, this glosses
+over how the user may want to spend some number of days at each city, but this is the most general case.
 
-In fact, this problem is very similar to the well-known Traveling Salesman Problem~\cite{Applegate:2007:TSP:1374811}, which asks if there exists a
-cycle in a graph that touches each node exactly once (i.e., a Hamiltonian Path). Each edge has a cost associated with it, and the decision version of
-the problem, which asks if there exists a valid Hamiltonian path with cost bounded by $B$, is NP-complete~\cite{Kar72}. In our case, we do not force
-the user to visit each city exactly once because the cheapest flight through a sequence of cities \emph{may require} visiting a city more than once.
+Unfortunately, finding the cheapest route possible is challenging using current agencies, because they require knowing the arrival and departure dates
+for each city. The reason for this is simple: the problem of finding this flight route is a hard problem to solve. In fact, this problem is very
+similar to the well-known Traveling Salesman Problem~\cite{Applegate:2007:TSP:1374811}, which asks if there exists a cycle in a graph that touches
+each node exactly once (i.e., a Hamiltonian cycle). Each edge has a cost associated with it, and the decision version of the problem, which asks if
+there exists a valid Hamiltonian cycle with cost bounded by $B$, is NP-complete~\cite{Kar72}. In our case, we do not force the user to visit each
+city exactly once because the cheapest flight through a sequence of cities \emph{may require} visiting a city more than once.
 
 What makes our problem (likely) much harder than the Traveling Salesman Problem is that the cost of an edge between two nodes in our graph (i.e., two
 cities) is not constant, because flight prices frequently change. We coin our problem the ``Distributed Retired Traveling Salesman Problem.'' The
@@ -137,13 +138,13 @@ The mathematical portion of our work uses a technique known as \emph{binary inte
 optimization techniques. The goal in optimization is straightforward: given a set of variables and a set of constraints, the goal is to find the best,
 feasible solution according to some criteria, such as cost (in which case, ``best'' means ``minimal'').
 
-\subsection{Linear and Integer Programming}
+\subsection{Linear and Integer Programming}\label{sec:lin_int_programming}
 
 One of the most commonly-used optimization techniques is linear programming, introduced by Dantzig in~\cite{GVK180926950}.
 
 \begin{defi}\label{defi:linear_programming}
 A \emph{linear programming problem} consists of three components: 
-\begin{enumerate}
+\begin{enumerate}[noitemsep]
     \item a finite collection of linear inequalities or equations in a finite number of unknowns, $x_1, \ldots, x_n$;
     \item sign constraints $x_i \ge 0$ on some (possibly empty) subset of the unknowns;
     \item a linear function to be minimized or maximized.
@@ -172,18 +173,17 @@ x_n$ are such that $x_i \in \{0,1\}$.
 We see that our problem is particularly suited to binary integer programming, because all the possible flights we could take can be viewed as a set of
 binary random variables, each of which has value 1 if we decide to take that flight, and 0 otherwise. We now formulate this problem in more detail.
 
-\subsection{An Integer Programming Formulation}
+\subsection{An Integer Programming Formulation}\label{sec:int_prog_form}
 
-We define our problem formulation as follows.
+To start formulating the problem, we make it concrete what we mean by cities, days, and costs.
 
-\begin{itemize}
-    \item We have $n$ cities to reach; we index cities by $i$ or $j$ (where $i, j \in \{1, 2, \ldots, n\}$).
-    \item We have $t$ (consecutive) days when we can travel: $t \in \{1, 2, \ldots, m\}$. Let
-    \item The minimum cost for traveling from city $i$ to $j$ on day $t$ is $c_{ijt}$. To start out this project, we assume that all flights span one
-day and are not overnight, for simplicity. As soon as possible, we will expand this to include potential hub stops, overnight flights, etc.
+\begin{itemize}[noitemsep]
+    \item We have $n$ cities to reach; we index cities by $i$ or $j$, where $i, j \in \{1, 2, \ldots, n\}$.
+    \item We have $t$ consecutive days when we can travel: $t \in \{1, 2, \ldots, m\}$.
+    \item The minimum cost for traveling from city $i$ to $j$ on day $t$ is $c_{ijt}$.
 \end{itemize}
 
-This allows us to define the following binary variables:
+Using the above lets us define the following variables:
 
 \[
 x_{ijt} = \begin{cases}
@@ -192,23 +192,40 @@ x_{ijt} = \begin{cases}
 \end{cases}
 \]
 
-The goal is to solve this problem:
+Thus, a solution to our problem will be the full assignment to each of the above variables. The set of the binary variables that equal one will
+(assuming the set has cardinality $k$) correspond to $k$ flights $f_1, \ldots, f_k$ ordered by date.
+
+For now, we make several simplifying assumptions, and defer a more detailed discussion about the realism of this project in
+Section~\ref{sec:limitations}. Perhaps the most important one is that we assume each flight is assigned to exactly one day. We will also force a valid
+solution to have flights all on different days. This means, at the moment, we do not consider issues related to (1) overnight flights (we will pretend
+they do not exist), (2) multiple-stop flights on the same day, and (3) possible logistic impossibilities such as flight $f_i$ arriving at 11:59 PM and
+then the next flight $f_{i+1}$ departing from the same airport two minutes later (but on the next day).
+
+The goal is to solve this minimization problem:
 
 \begin{equation}
 \mbox{Minimize } \sum_{t=1}^{m} \sum_{i=1}^{n} \sum_{j=1}^{n} c_{ijt}x_{ijt},
 \end{equation}
 
-\textbf{subject to} the following constraints:
-
+\emph{subject to} the following constraints:
 \begin{align}
 \sum_{i=1}^{n} \sum_{j=1}^{n} x_{ijt} &\le 1 \mbox{ for all } t \in \{1, 2, \ldots, m\}, \\ 
 \sum_{t=1}^{m} \sum_{i=1}^{n} x_{ijt} &\ge 1 \mbox{ for all } j \in \{1, 2, \ldots, n\}, \\
 \sum_{t=1}^{m} \sum_{j=1}^{n} x_{ijt} &\ge 1 \mbox{ for all } i \in \{1, 2, \ldots, n\}.
 \end{align}
 
-The first constraint ensures that we have at most one flight per day. The second constraint ensures we enter each city at least once. The third
-constraint ensures we leave each city at least once. Sadly, this is \textbf{not} enough to solve our problem! The issue here is with potential cycles.
-Figure~\ref{fig:bad_solution} shows how the integer programming solution could theoretically give us a solution consisting of disjoint cycles.
+The first constraint ensures that we have at most one flight per day, which is generally too restrictive for real-life, but will suffice for now. The
+second constraint ensures we enter each city at least once. The third constraint ensures we leave each city at least once. These last two reinforce
+the notion that going through the cheapest route may mean visiting several cities more than once.
+
+Sadly, these previous constraints are \emph{not} enough to solve our problem. There are two glaring issues with the current constraints that, if we
+were to use them to solve this flight scheduling problem, could result in a logically inconsistent flight route.
+
+\subsubsection{Disjoint Cycles}\label{sec:disjoint_cycles}
+
+The first problem is that the constraints do not prevent disjoint cycles. Figure~\ref{fig:bad_solution} shows a graph with six nodes, which may
+represent six cities, and a possible edge assignment that is indicative of the route we take to visit all cities. Assuming the flights are all on
+different days, the route satisfies our constraints, because we enter and exit each city at least once, but this is not a Hamiltonian cycle.
 
 \begin{figure}[t]
 \vskip 0.2in
@@ -220,128 +237,239 @@ Figure~\ref{fig:bad_solution} shows how the integer programming solution could t
 \vskip -0.2in
 \end{figure}
 
-To counteract this issue, we will need to ensure we have additional variables. With the six-variable situation in Figure~\ref{fig:bad_solution}, for
-instance, we will need constraints such as
+To prevent disjoint cycles, we need to add additional constraints that correspond to all the ways we can subdivide the cities into two groups so that
+both of them contain at least two cities. (A subdivision where one group only has one city is already covered by our earlier constraints since we
+would have to leave and enter that city at least once, which requires connecting with the other group.) For instance, with the six-variable situation
+in Figure~\ref{fig:bad_solution}, one constraint would be
+\begin{align}
+\sum_{t=1}^{m} (&x_{14t} + x_{15t} + x_{16t} + x_{24t} + x_{25t} + \\
+& x_{26t} + x_{34t} + x_{35t} + x_{36t}) \ge 1, \nonumber
+\end{align}
 
-\begin{equation}
-\sum_{t=1}^{m} (x_{14t} + x_{15t} + x_{16t} + x_{24t} + x_{25t} + x_{26t} + x_{34t} + x_{35t} + x_{36t}) \ge 1.
-\end{equation}
+which ensures that at least one leg of the tour connects cities 1, 2, and 3 with cities 4, 5, and 6, so this corresponds to the subdivision of
+$\{[1,2,3],[4,5,6]\}$. We can characterize the number of constraints we need to add to prevent disjoint cycles.
 
-The previous constraint ensures that at least one leg of the tour connects cities 1, 2, and 3 with cities 4, 5, and 6. We need constraints like these
-for every way we can split up the cities into groups. Of course, the need to implement these kind of constraints to prevent sub-tours is why integer
-programming is so difficult. Fortunately, we will assume the user is going to keep the number of cities reasonably small.
+\begin{lem}\label{lem:cycle_constraints}
+In a problem that has $n \ge 4$ constraints, the number of ways to subdivide the cities so that each has two groups is ${n \choose 2} + {n \choose 3}
++ \cdots + {n \choose n-2}$.
+\end{lem}
 
-here, we shoudl also add in prof miller's great example based on why int prog is so hard
+The reasoning is straightforward: we have two groups, and we want to pick the number of elements for one group. We can pick some number out of $n$
+elements to be in one group, and assign all the rest to the others.
+
+One technical note is that the number of constraints from Lemma~\ref{lem:cycle_constraints} can be halved by symmetry. Still, the number of equations
+needed grows rapidly with respect to $n$, and the need to implement these various restrictions is why integer programming is a hard task. Integer
+programming is, in fact, an NP-hard problem, and the binary case is NP-complete~\cite{Kar72}. In contrast, faster algorithms such as the Simplex
+method\footnote{The Simplex Method performs well in practice but its runtime has historically been difficult to evaluate, as in the worst case it
+\emph{can} run in exponential time~\cite{Klee1972}. The simplex algorithm has \emph{smoothed complexity} polynomial in the input size; for details
+about this, see~\cite{Spielman:2004:SAA:990308.990310}.} are used to solve linear programming problems. Note that simply taking a solution to the
+linear programming problem and then rounding it to form a ``solution'' to the integer problem will not work, as we show in Section~\ref{app:lin_vs_int}.
+
+\subsubsection{Consecutive Flights in Different Cities}
+
+The second problem with the constraints posed earlier in Section~\ref{sec:int_prog_form}, which the constraints in~\ref{sec:disjoint_cycles} do
+\emph{not} resolve, is that we can get flight orderings that are logically inconsistent in the sense that consecutive flights may not agree in their
+choice of cities. It makes no sense, for instance, to have flights $f_i$ and $f_{i+1}$ where $f_i$ takes the participant from NYC to Tokyo, and
+$f_{i+1}$ takes him or her from Paris to London.
+
+Unfortunately, fixing the flight ordering by adding in constraints is challenging and requires a large number of equations. Our implementation only
+adds in one layer of constraints for here, and defers a complete flight logic check to the code that actually generates the tree. Thus, we resolve
+this by just solving the problem as we would normally without the constraint, and then checking all proposed solutions for flight logic before
+accepting them.
+
+For more details about this, see Section~\ref{app:flight_logic}.
+
+{\bf TODO}
+
+\subsection{Using Balas' Additive Algorithm}\label{sec:balas}
+
+We will use this algorithm to solve Integer Programming. See~\cite{doi:10.1287/opre.13.4.517}.
+
+{\bf TODO}
 
 
-\subsection{Implementation Details}
 
-We will use the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}} database to obtain information about our flights; the information
-itself will be extracted with our own web crawler. We coin this ``The Retired Traveler Problem,'' primarily because if we assume the dates are set far
-enough apart, it would interfere with a non-retired person's occupation. For details on the real problem, see sources such as.
-
-How to best implement this is still an open question. There are algorithms for implementing integer programming. The question is whether we
-can efficiently use our \emph{distributed systems}. There are a number of results based on parallelizing integer programming in the literature. We
-will read through them and by the first checkpoint (see Section~\ref{sec:checkpoint1}) we will have made a decision. There are also some online
-implementations, such as CPLEX Optimizer\footnote{\url{http://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/index.html}}, but I think
-it is in our best interests to implement this ourselves.
 
 \section{Systems Component}\label{sec:systems}
+
+Our code that solves the Distributed Retired Traveling Salesman Problem is made up of several components that form a multi-tiered client-server model
+(for an introduction to the client-server model, see~\cite{Tanenbaum:2006:DSP:1202502}).  We have a front-end server, a master server, and a group of
+slave servers in the system, as shown in Figure~\ref{fig:machines}. The slave servers come from machines that we use. Originally, we wanted to use
+PlanetLab~\cite{conf/osdi/PetersonBFM06}, which is a global platform for deploying and evaluating network services and allows people to use portions
+of other PlanetLab computers. This was too complicated to work with, so we stuck with the Williams lab computers.
+
+{\bf TODO}
 
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{servers}}
-\caption{This represents our ideal machine setup.}
+\caption{This represents our setup.}
 \label{fig:machines}
 \end{center}
 \vskip -0.2in
 \end{figure}
 
-We will have a front-end server, a master server, and a group of slave servers in the system, as shown in Figure~\ref{fig:machines}. We get all the
-servers from the PlanetLab Platform (thanks to Jeannie).
+\subsection{Front-end Server}\label{sec:front_end_server}
 
-\subsection{Front-end Server}
-This server will serve as a front-end interface for the ignorant masses. It receives user input, forwards the request to the master server (shown in
-the image as step \texttt{1}), listens to the master for the result (shown as step \texttt{6}), and displays the result when it is ready. More
-specifically, the front-end server will have a simple website to interact with the user.
+The front-end server acts as a point of communication between the client\footnote{Somewhat impolitely, we can refer to the set of clients, minus us,
+as the ``ignorant masses.''} and our master server. It is a Python script that starts on the command line and outputs introductory messages to the
+client so that he or she knows how to use our system. The front-end serve receives user input, forwards the request to the master server (step
+\texttt{1} in Figure~\ref{fig:machines}), listens to the master for the result (step \texttt{6} in Figure~\ref{fig:machines}), and displays the result
+when it is ready. The result that we print back to the user is currently the single best list of the flights ordered by departure date. If there is
+more than one optimal solution, it only returns one of them.
 
-\subsection{Master Server}
-The Master server is the brain of the system. It listens to the user request sent from the front-end server (step \texttt{1}). When a request comes
-in, it first comes up with a list of flight prices on all possible dates and for all possible destinations in the problem that we need to get for the
-computation, distributes the flight price queries among all the slaves (step \texttt{2}), gathers all the price data back from the slaves (step
-\texttt{3}), and combines them. It then upload the combined data to a distributed file system to make the data available for parallel computing on all
-the slaves. Then it starts the parallel computing for the cheapest route using a distributed zero-one linear programming algorithm on all slaves
-(steps \texttt{4} and \texttt{5}). After the computation, it sends the results of the cheapest route back to the front-end server (step \texttt{6}).
+\begin{figure}[t]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{front_end_server}}
+\caption{This shows our front-end server.}
+\label{fig:front_end_server}
+\end{center}
+\vskip -0.2in
+\end{figure}
 
-\subsection{Slave Server}
+Figure~\ref{fig:front_end_server} shows a version of our front-end server (we change its design fairly frequently). Here, the hypothetical user made a
+request to find the cheapest flight route that touches Denver, Atlanta, and New York City from the four day period of July 3, 2014 to  July 7, 2014.
+Our code ran and the master server fed back the resulting flight ordering of Atlanta to Denver, then Denver to New York City, then New York City back
+to Atlanta.
+
+If time permits, we may transform the command-line interface to a website, which will expand our audience of potential clients. It is also
+straightforward to add more optional arguments to the command line, so the user might add in an extra flag that could indicate that he or she wishes
+to have a minimum of three days between flights.
+
+
+\subsection{Master Server}\label{sec:master_server}
+
+The Master server is the brain of the system. It listens to the user request sent from the front-end server (step \texttt{1} in
+Figure~\ref{fig:machines}). When a request comes in, it first comes up with a list of flight prices on all possible dates and for all possible
+destinations in the problem that we need to get for the computation, distributes the flight price queries among all the slaves (step \texttt{2}),
+gathers all the price data back from the slaves (step \texttt{3}), and combines them. It then upload the combined data to a distributed file system to
+make the data available for parallel computing on all the slaves. Then it starts the parallel computing for the cheapest route using a distributed
+zero-one linear programming algorithm on all slaves (steps \texttt{4} and \texttt{5}). After the computation, it sends the results of the cheapest
+route back to the front-end server (step \texttt{6}).
+
+{\bf TODO! This needs more information.}
+
+\subsection{Slave Server}\label{sec:slave_server}
+
 We have a group of slave servers that listens to the command of the master server and does the distributed tasks of flight price querying (using the
 web crawler we write) and parallel zero-one linear programming.
 
-\section{Checkpoints}
+The slave server uses this! Be clear on that!
 
-\subsection{Checkpoint 5/2}\label{sec:checkpoint1}
+We will use the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}} database to obtain information about our flights; the information
+itself will be extracted with our own web crawler. We coin this ``The Retired Traveler Problem,'' primarily because if we assume the dates are set far
+enough apart, it would interfere with a non-retired person's occupation. For details on the real problem, see sources such as.
 
-By this date, we will have our machine/cluster and the web crawler working. We will finalize the mathematical portion of our work by choosing which
-distributed algorithm to implement.
+{\bf TODO! This needs more information.}
 
-\subsection{Checkpoint 5/9}\label{sec:checkpoint2}
 
-By this date, we will have implemented (1) the distributed systems requesting process\footnote{As stated earlier, this is when the master distributes
-requests to slave machines to determine the cheapest flight for a certain date and city destinations.} and (2) the (possibly distributed) integer
-programming problem.  In other words, the code will solve the problem for the two of us any reasonable input (it just lacks a front-end for the rest
-of the ignorant masses). \\
+\section{Experiments and Results}\label{sec:experiments_results}
 
-{\bf UPDATE!!!} \\
+{\bf TODO}
 
-We are now at the second checkpoint. Here is what we have accomplished:
+\subsection{Simple Examples}
+{\bf TODO}
 
-\begin{itemize}
-    \item We have implemented a web crawler
-    \item We have implemented a web crawler server that can talk to the crawler to get the price
-    \item We have implemented Balas' Additive Algorithm~\cite{doi:10.1287/opre.13.4.517} for efficiently solving binary integer programming problems.
-    \item We have gotten the basic setup for our writeup (i.e., this PDF document) ... it just needs to be heavily revised.
-\end{itemize}
+\subsection{Runtime Analysis}
+{\bf TODO}
 
-We have sent all of our code to Jeannie by email.
+\subsection{Feasibility}
+{\bf TODO}
 
-I (Daniel Seita) have to admit that we're a bit behind where we want, because we haven't been able to actually combine our crawler's results with the
-input to the integer programming problem, but we're going to do nothing but 339 work over the weekend. We're also thinking of expanding the work to
-include other integer programming formulations (this is going to be an additional part of our mathematical side of this project).
-
-\subsection{Presentation and Final Product}
-
-By this date, we will have implemented a fancy front-end website where users can query a flight schedule. We will also be prepared to give a talk by
-the May 13 ({\bf UPDATE: May 11}) date. Then we will work on fixing up this paper and doing some more programming.
 
 \section{Limtiations}\label{sec:limitations}
 
 {\bf TODO}
 
-\section{Conclusions and Future Work}\label{sec:conclusions}
+\subsection{One Flight a Day}
+{\bf TODO}
+
+Explain that matrix ita will sometimes give us two or three flights for ``one route'' so it actually works out ok...in some ways.
+
+\subsection{One Ticket, Multiple Flights}
+{\bf TODO}
+
+Explain that this will give us problems.
+
+\section{Conclusion}\label{sec:conclusion}
+
+We view this as a beginning, rather than an end, of the Distributed Retired Traveling Salesman Problem. There are several ways of proceeding from our
+work.
+
+\begin{itemize}\label{noitemsep}
+    \item We could improve the aesthetics of our implementation. Most prominently, our front-end server is in the form of a command-line interface,
+    but many people do not know how to use those. Consequently, we could reach out to and would be much more comfortable with a streamlined website.
+\end{itemize}
+
+Overall, this was an extremely fun project. It was one of the most successful projects where we had only a vague plan but ended up with hopefully a
+working implementation that could be useful under the right circumstances.
 
 {\bf TODO}
 
 \section*{Acknowledgments}
  
-We thank Professor Jeannie Albrecht for teaching the course that inspired this project. We are also indebted to Professor Steven Miller for
-introducing us to the world of operations research.
+We thank Brent Heeringa for introducing us to the world of NP-completeness, Jeannie Albrecht for teaching us how to play around with servers and
+design distributed systems, and Steven Miller for carving out time from his super-busy schedule to provide us with an independent study that gave us
+the requisite mathematical background.
 
 \bibliography{Daniel_Lucky_Report}
 \bibliographystyle{icml2014}
+
+
+
+
+
+
 
 
 % Jeannie doesn't need to read this if she doesn't want to...
 \onecolumn
 
 \appendix
-\section{Balas' Additive Algorithm}
+
+\begin{center}
+{\Large \textbf{Supplementary Material}}
+\end{center}
+
+Outline of Supplementary Material:
+
+\begin{itemize}[noitemsep]
+    \item TODO
+    \item TODO
+    \item TODO
+    \item TODO
+\end{itemize}
+
+
+\section{Integer Programming versus Linear Programming}\label{app:lin_vs_int}
+
+Here, we should describe the interaction between integer and linear programming, and show why integer programming is harder and cannot be obtained by
+rounding from the linear solution. Our work, of course, is heavily influenced by~\cite{stevenmiller}.
 
 {\bf TODO}
 
+\section{Adding Constraints to Prevent Flight Logic Errors}\label{app:flight_logic}
 
+Here, we should describe the constraints that we added in for flight logic. I only added in one layer of constraints.
+
+{\bf TODO}
+
+\section{Balas' Additive Algorithm}\label{app:balas}
+
+{\bf TODO}
+
+\section{Additional Experiments and Examples}\label{app:additional_experiments_and_examples}
+
+{\bf TODO}
+
+% Daniel's stuff for experimentation. Do not include these in the final document.
 
 \end{document} 
+
+
+
 
 % Look at that! Andrea is here! ~Daniel Seita (05/08/2014)
 

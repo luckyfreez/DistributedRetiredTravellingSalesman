@@ -5,46 +5,49 @@ The style file: icml2014.bst
 Database file #1: Daniel_Lucky_Report.bib
 A bad cross reference---entry "conf/focs/GharanSS11"
 refers to entry "conf/focs/2011", which doesn't exist
+A bad cross reference---entry "conf/osdi/PetersonBFM06"
+refers to entry "conf/osdi/2006", which doesn't exist
+Warning--I didn't find a database entry for "conf/osdi/2006"
 Warning--I didn't find a database entry for "conf/focs/2011"
-You've used 8 entries,
+You've used 13 entries,
             2773 wiz_defined-function locations,
-            667 strings with 6797 characters,
-and the built_in function-call counts, 3697 in all, are:
-= -- 358
-> -- 152
-< -- 10
-+ -- 53
-- -- 45
-* -- 259
-:= -- 579
-add.period$ -- 40
-call.type$ -- 8
-change.case$ -- 35
-chr.to.int$ -- 8
-cite$ -- 16
-duplicate$ -- 193
-empty$ -- 319
-format.name$ -- 55
-if$ -- 807
+            715 strings with 7888 characters,
+and the built_in function-call counts, 6224 in all, are:
+= -- 601
+> -- 276
+< -- 16
++ -- 94
+- -- 81
+* -- 444
+:= -- 958
+add.period$ -- 63
+call.type$ -- 13
+change.case$ -- 60
+chr.to.int$ -- 13
+cite$ -- 26
+duplicate$ -- 314
+empty$ -- 532
+format.name$ -- 102
+if$ -- 1365
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 10
-newline$ -- 59
-num.names$ -- 36
-pop$ -- 71
+missing$ -- 15
+newline$ -- 90
+num.names$ -- 60
+pop$ -- 122
 preamble$ -- 1
-purify$ -- 30
+purify$ -- 51
 quote$ -- 0
-skip$ -- 141
+skip$ -- 240
 stack$ -- 0
-substring$ -- 124
-swap$ -- 34
-text.length$ -- 4
+substring$ -- 219
+swap$ -- 59
+text.length$ -- 6
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 73
+type$ -- 123
 warning$ -- 0
-while$ -- 35
+while$ -- 59
 width$ -- 0
-write$ -- 140
-(There was 1 error message)
+write$ -- 219
+(There were 2 error messages)

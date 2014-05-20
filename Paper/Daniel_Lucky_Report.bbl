@@ -1,4 +1,4 @@
-\begin{thebibliography}{8}
+\begin{thebibliography}{13}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -59,6 +59,17 @@ Karp, R.
 \newblock In Miller, R. and Thatcher, J. (eds.), \emph{Complexity of Computer
   Computations}, pp.\  85--103. Plenum Press, 1972.
 
+\bibitem[Klee \& Minty(1972)Klee and Minty]{Klee1972}
+Klee, V. and Minty, G.~J.
+\newblock {How Good is the Simplex Algorithm?}
+\newblock In Shisha, O. (ed.), \emph{{Inequalities III}}, pp.\  159--175.
+  {Academic Press Inc.}, New York, 1972.
+
+\bibitem[Miller(2012)]{stevenmiller}
+Miller, Steven.
+\newblock An introduction to advanced linear algebra.
+\newblock Operations Research Class Notes, 2012.
+
 \bibitem[Moemke \& Svensson(2011)Moemke and
   Svensson]{Moemke:2011:AGT:2082752.2082898}
 Moemke, Tobias and Svensson, Ola.
@@ -69,5 +80,32 @@ Moemke, Tobias and Svensson, Ola.
 \newblock ISBN 978-0-7695-4571-4.
 \newblock \doi{10.1109/FOCS.2011.56}.
 \newblock URL \url{http://dx.doi.org/10.1109/FOCS.2011.56}.
+
+\bibitem[Peterson et~al.(2006)Peterson, Bavier, Fiuczynski, and
+  Muir]{conf/osdi/PetersonBFM06}
+Peterson, Larry~L., Bavier, Andy~C., Fiuczynski, Marc~E., and Muir, Steve.
+\newblock Experiences building planetlab.
+\newblock In Bershad, Brian~N. and Mogul, Jeffrey~C. (eds.), \emph{OSDI}, pp.\
+  351--366. USENIX Association, 2006.
+\newblock ISBN 1-931971-47-1.
+\newblock URL
+  \url{http://dblp.uni-trier.de/db/conf/osdi/osdi2006.html#PetersonBFM06}.
+
+\bibitem[Spielman \& Teng(2004)Spielman and
+  Teng]{Spielman:2004:SAA:990308.990310}
+Spielman, Daniel~A. and Teng, Shang-Hua.
+\newblock Smoothed analysis of algorithms: Why the simplex algorithm usually
+  takes polynomial time.
+\newblock \emph{J. ACM}, 51\penalty0 (3):\penalty0 385--463, May 2004.
+\newblock ISSN 0004-5411.
+\newblock \doi{10.1145/990308.990310}.
+\newblock URL \url{http://doi.acm.org/10.1145/990308.990310}.
+
+\bibitem[Tanenbaum \& Steen(2006)Tanenbaum and
+  Steen]{Tanenbaum:2006:DSP:1202502}
+Tanenbaum, Andrew~S. and Steen, Maarten~van.
+\newblock \emph{Distributed Systems: Principles and Paradigms (2Nd Edition)}.
+\newblock Prentice-Hall, Inc., Upper Saddle River, NJ, USA, 2006.
+\newblock ISBN 0132392275.
 
 \end{thebibliography}
