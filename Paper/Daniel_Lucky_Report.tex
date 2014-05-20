@@ -401,45 +401,72 @@ time-consuming task of the full system.
 {\bf TODO}
 
 
-\section{Limtiations}\label{sec:limitations}
+\section{Limitations}\label{sec:limitations}
+% TODO We can cut out some of the limitations here because it's fairly long...
 
-This section addresses a number of issues briefly touched upon in Section~\ref{sec:int_prog_form} and other areas of this paper.
+This section addresses a number of issues briefly touched upon in Section~\ref{sec:int_prog_form} and other areas of this paper. We avoid discussing
+anything that can be easily added as an extension (e.g., forcing us to start at one particular city, or making the flight route to make a stop at a
+city three times).
 
 \subsection{Practical Usage}
 
-One important question to consider is 
+One important question to consider is whether our system is practical for real-life use. Our experiments in Section~\ref{sec:experiments_results} show
+that it is doable for a small enough input. Ideally, the number of cities would be limited by four, maybe five (which seems reasonable for a trip),
+and the number of days bounded based on the number of cities. One of the key limiting factors in our algorithm is the length of the variable vector,
+or the number of flights we must consider. In particular, if the user requests a flight route involving $n$ cities over $t$ days, then the total
+number of days and flight combinations possible is $n(n-1)t$, which comes from picking one of $n$ cities to start from, one of the $n-1$ remaining
+cities to land to, and one of the $t$ days for this flight to occur. This is why the bound on the days should be considered in context with the number
+of cities; the fewer cities we have, the more days we can allow.
 
-{\bf TODO}
+Our experience shows that if $n(n-1)t$ is bounded by 100, then the problem is generally doable (i.e., completes within a few hours).
+A bound of 100 is still prohibitive for an extensive travel trip. If someone wants to travel for a month's worth of days, say $t = 30$, then the
+minimum number of flights possible for our system would be $3\cdot 2\cdot 30 = 180$, already quite prohibitive. The situation gets massively worse as
+$n$ increases. To mitigate the effect of increasing the variable vector, we can easily distribute the flight lookup process. Specifically, if we have
+a period of 30 days in a request, it makes sense to utilize 30 machines and distribute all possible combinations of flights on day $t$ to be the
+responsibility of the $t^{\text{th}}$ machine.
+
+This will work well to lower the cost of flight lookup. Unfortunately, as that process runs quicker, Balas' Additive Algorithm will become the major
+time bottleneck. With a large variable vector, the depth-first search process can take prohibitively long since the number of paths needed to explore
+is exponential. One workaround for this would be to add in more constraints, so that we can prune more often, but unless the constraints are overly
+restrictive --- which defeats our objective of having the user supply minimal information --- the number of nodes to search will still grow quickly
+based on the vector length (i.e., $n(n-1)t$). Balas' Additive Algorithm can be distributed by assuming that the vector starts with a certain value and
+then assigning the algorithm to determine the rest of them. For instance, with four machines, we can have four computers each solve Balas' algorithm
+under the assumption that their vector start with $[0,0]$, $[0,1]$, $[1,0]$, and $[1,1]$, respectively.
+
+As this problem takes exponential time but can be sped up with enough machines, whether or not it can really be used in practice is an open question.
+Since our implementation is extremely raw but does work for small inputs, this gives us hope that future researchers can improve our system.
 
 \subsection{One Flight a Day}
 
 As stated earlier, one of our key assumptions is that every flight lasts one day and each day can only have one flight. In real life, however, it is
 common for people to take two, or even three, flights in a day, especially if their departure or destination cities are not one of the major airline
-hubs such as Chicago O'Hare or Hartsfield-Jackson Atlanta.
+hubs (e.g., Chicago O'Hare or Hartsfield-Jackson Atlanta).
 
 This limitation is, in fact, often not a problem. The key is that when looking up flights between two cities, Matrix ITA defaults to searching not
 only for direct flights, but also for flight routes that make one or two stops. So when making a request to go from Albany to Los Angeles, our crawler
 will pick the cheapest flight that appears on the list, which almost always makes one stop at airports such as Chicago or Charlotte. So even though
-our code might output \texttt{[ALB->ORD, 07/07/2014, \$400]}, there will be another flight ``hidden'' in our route.
+our code might output \texttt{[ALB->LAX, 07/07/2014, \$400]}, there will be another flight ``hidden'' in our route.
 
 A more problematic situation with our ``one flight'' a day limitation is that it may be cheaper to take two separate flights that touch three major
-cities. For example, if we wanted to travel to Chicago, Atlanta, and Denver in some order, the cheapest route 
+cities. For example, if we wanted to travel to Chicago, Atlanta, and Denver in some order over the span of six days, the cheapest route may involve
+going from Chicago to Atlanta on the third day, and then going from Atlanta to Denver, \emph{also} on the third day.
 
-
-{\bf TODO}
+Another limitation is that we only view time in terms of absolute days. If we look up a flight on day $t$, an overnight flights that starts on day $t$
+may be selected, and we the code may also assign a flight to start on day $t+1$, raising some logistical issues. Even if we ignore overnight flights,
+we could have a flight landing at the very end of day $t$ and the next flight departing at the beginning of day $t+1$ with insufficient layover time.
+We do not have ways of facing this limitation in our system, but one possible idea is to treat time in one-hour units, rather than 24-hour units,
+giving us a finer grain of control. It is unclear how much this would complicate the rest of our constraints.
 
 \subsection{One Ticket, Multiple Flights}
-{\bf TODO}
 
+One issue that currently seems outside the realm of our ability to solve is that even if we search for a direct flight route and find the cheapest
+ticket, it may still not be the cheapest way to actually get there. \textbf{TODO, need to confirm with Lucky...}
 
 \subsection{Web Crawler Issues}
 
-{\bf Details on crawler...}
-
-In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. There are still several
-points of concern related to the crawler.
-
-{\bf Talk about my concerns...}
+In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. It has one problem,
+though, which is that it can sometimes get stuck on a Matrix ITA page after searching the price for a flight. Typically, this happens when we have it
+running ``in the background''; bringing it back up to the foreground successfully makes it continue.
 
 \section{Conclusion}\label{sec:conclusion}
 
@@ -447,21 +474,24 @@ We view this as a beginning, rather than an end, of the Distributed Retired Trav
 work.
 
 \begin{itemize}[noitemsep]
-    \item We could address the limitations we discussed in Section~\ref{sec:limitations}.
+    \item In terms of the mathematical component, there may be other valid ways of solving binary integer programming problems, and it would be of
+    interest to compare the feasibility of different algorithms.
+    \item We could address the limitations we discussed in Section~\ref{sec:limitations}. The biggest one might be to extend the ``time'' constraint
+    so that we can always ensure that our flight route has sufficient layover time at airports.
     \item We could improve the aesthetics of our implementation. Most prominently, our front-end server is in the form of a command-line interface,
     but many people do not know how to use those. Consequently, we could reach out to and would be much more comfortable with a streamlined website.
 \end{itemize}
 
-Overall, this was an extremely fun project. It was one of the most successful projects where we had only a vague plan but ended up with hopefully a
-working implementation that could be useful under the right circumstances.
-
-{\bf TODO}
+Related to the first item described above, improving the runtime of this algorithm will hopefully be a huge part of future work. This makes sense,
+because our algorithm should return ``correct'' flight routes, but the runtime can be prohibitive for even a moderate amount of cities and days.
+Striking the right balance between piling on constraints/limitations (decreases runtime, increases restrictiveness) and brute-force searching
+(increases runtime, decreases restrictiveness) seems to be the way to go to provide a system that allows the user to plan out a cheap trip without
+checking all possible flight routes.
 
 \section*{Acknowledgments}
  
 We thank Brent Heeringa for introducing us to the world of NP-completeness, Jeannie Albrecht for teaching us how to play around with servers and
-design distributed systems, and Steven Miller for carving out time from his super-busy schedule to provide us with an independent study that gave us
-the requisite mathematical background.
+design distributed systems, and Steven Miller, whose independent study provided the inspiration for this project.
 
 \bibliography{Daniel_Lucky_Report}
 \bibliographystyle{icml2014}

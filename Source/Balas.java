@@ -13,15 +13,17 @@ public class Balas {
     private static int[][] original_constraints;
     private static int[] original_costs;
     private static ArrayList<Flight> flights = new ArrayList<Flight>();
+    private static int min_days_btwn_flights;
 
 
     /**
      * Constructor for Balas, which gets called from the crawler
      */
-    public Balas (int[][] original_constraints, int[] original_costs, ArrayList<Flight> flights) {
+    public Balas (int[][] original_constraints, int[] original_costs, ArrayList<Flight> flights, int min_days) {
         this.original_constraints = original_constraints;
         this.original_costs = original_costs;
         this.flights = flights;
+        this.min_days_btwn_flights = min_days;
     }
 
 
@@ -43,7 +45,7 @@ public class Balas {
         int[][] ordered_constraints = order_constraints(variable_ordering, original_constraints);
 
         // Ready to actually start Balas' Additive Algorithm! 
-        List<Integer> best_path = dfs(ordered_costs, ordered_constraints, variable_ordering);
+        List<Integer> best_path = dfs(ordered_costs, ordered_constraints, variable_ordering, min_days_btwn_flights);
 
         // Convert the best path to the best set of flights, and return that to the master.
         System.out.println("Done with the DFS. Total cost: " + dot_product(best_path, ordered_costs) + "\n");
@@ -249,12 +251,10 @@ public class Balas {
      * Last note: 'path' may end in a 0, which implies it's case 2 where we need to add another flight at the end
      */
     public static boolean check_flight_logic(List<Integer> path, int[] variable_ordering) {
-        // System.out.println("Inside flight logic with path " + path);
         List<Flight> current_flights = new ArrayList<Flight>(); // Current flights listed in order of cost
         for (int i = 0; i < path.size(); i++) {
             if (path.get(i) == 1) {
                 int flight_index = variable_ordering[i];
-                // current_flights.add(flights.get(i)); // For some reason, I had this here!
                 current_flights.add(flights.get(flight_index));
             }
         }
@@ -265,7 +265,6 @@ public class Balas {
 
         // Next, order the flights by date. Thank goodness Flight class implements comparable!! (Good thinking, huh ;-) ?)
         Collections.sort(current_flights);
-        // System.out.println("Current ordered flights: " + current_flights);
 
         // Now we have a list of complete flights in order. Let's check their logic (don't need to check last)
         for (int i = 0; i < current_flights.size()-1; i++) {
@@ -282,10 +281,54 @@ public class Balas {
 
 
     /**
+     * Return TRUE if min days between flights is satisfied, false if otherwise.
+     * Again, 'path' may end in a 0, which implies it's case 2 where we need to add another flight at the end
+     * There are a lot of similarities between this method and check_flight_logic, could consider merging them
+     * TODO Again this kind of assumes we're at the same year AND the same month ... should expand to improve dates
+     */
+    public static boolean min_days_btwn_flights_logic(List<Integer> path, int[] variable_ordering) {
+        List<Flight> current_flights = new ArrayList<Flight>(); // Current flights listed in order of cost
+        for (int i = 0; i < path.size(); i++) {
+            if (path.get(i) == 1) {
+                int flight_index = variable_ordering[i];
+                current_flights.add(flights.get(flight_index));
+            }
+        }
+        if (path.get(path.size()-1) == 0 && variable_ordering.length > path.size()) {
+            int flight_index = variable_ordering[path.size()];
+            current_flights.add(flights.get(flight_index));
+        }
+
+        // Next, order the flights by date. Thank goodness Flight class implements comparable!! (Good thinking, huh ;-) ?)
+        Collections.sort(current_flights);
+        // System.out.println("Checking min flight btwn days with flight list " + current_flights);
+
+        // Now we have a list of complete flights in order. Let's check their logic (don't need to check last)
+        for (int i = 0; i < current_flights.size()-1; i++) {
+            Flight first_flight = current_flights.get(i);
+            Flight second_flight = current_flights.get(i+1);
+            String[] first_date = first_flight.depDate.split("/");
+            String[] second_date = second_flight.depDate.split("/");
+            if (first_date[2].equals(second_date[2]) && first_date[0].equals(second_date[0])) {
+                int day1 = Integer.parseInt(first_date[1]);
+                int day2 = Integer.parseInt(second_date[1]);
+                if (day2 - day1 - 1 < min_days_btwn_flights) {
+                    return false;
+                }
+                // int days = day2-day1-1;
+                // System.out.println("We have day2-day1-1 as " + days);
+            }
+        }
+        return true;
+    }
+
+
+    /**
      * The ultimate method here! This performs Balas' Additive Algorithm by running a smart DFS with look-aheads and pruning
      * It's the iterative version of dfs. With lots of nodes, it might run out of memory so be sure to allocate plenty to java.
+     * NEW! We've added in 'min_days_btwn_flights' so we can do that check EVERY TIME we add in a new flight without concern.
      */
-    public static List<Integer> dfs(int[] costs, int[][] constraints, int[] variable_ordering) {
+    public static List<Integer> dfs(int[] costs, int[][] constraints, int[] variable_ordering, int min_days_btwn_flights) {
 
         // Getting things set up and assume worst-case scenario cost
         int best_cost = 0;
@@ -303,12 +346,9 @@ public class Balas {
         Node root = new Node(null, current_path);
         Stack<Node> st = new Stack<Node>();
         st.push(root);
-        int stackElements = 1;
         
         while (!st.empty()) {
-            // System.out.println("Stack size before popping this one: " + stackElements);
             Node node = st.pop();
-            stackElements--;
 
             if (!discovered.contains(node)) {
                 discovered.add(node);
@@ -332,17 +372,18 @@ public class Balas {
                     int cost_child2 = look_ahead(current_path2, costs, constraints);
 
                     // Check the two cases. In both cases, if we have found a solution, must also CHECK FLIGHT LOGIC 
-                    // Note: if it is feasible and logically correct BUT if cost is worse, we don't continue this way in DFS
+                    // Note: if it is feasible and logically correct BUT if cost is worse, we don't continue it in DFS
+                    // Note: if we ever find a case that violates minimum days between flights, we don't continue it in DFS
 
                     // For each of the two cases, first check if it's feasible. Then check if it's better than best cost.
 
                     // Case/Path 1
                     if (cost_child1 != -1) {
-                        // Only worth checking of cost is better than the best one because we're assuming best-case costs
-                        if (cost_child1 < best_cost) {
+                        // Feasible, but only check if cost is better than the best one because we're assuming best-case costs
+                        // Must also check min_days_btwn_flights, if the logic doesn't work, we don't continue.
+                        if (cost_child1 < best_cost && min_days_btwn_flights_logic(path1, variable_ordering)) {
                             // If this is a candidate, then check to make sure that flight is logically consistent.
                             // If not, we MAY add in a future flight later in between to make things work, so that's why we have a special case
-                            // System.out.println("Now in case 1, checking flight logic...");
                             if (check_flight_logic(path1, variable_ordering)) {
                                 System.out.println("Case 1 update, node #" + expanded_nodes + ", new cost: " + cost_child1 + ", new path: " + current_path1);
                                 best_cost = cost_child1;
@@ -350,7 +391,6 @@ public class Balas {
                             } else {
                                 Node child = new Node(node, path1); 
                                 st.push(child);
-                                stackElements++;
                             }
                         }
                     } else {
@@ -358,30 +398,27 @@ public class Balas {
                         if (!check_pruning(path1, costs, constraints)) {
                             Node child = new Node(node, path1); 
                             st.push(child);
-                            stackElements++;
                         }
                     }
 
                     // Case/Path 2
                     if (cost_child2 != -1) {
-                        if (cost_child2 < best_cost) {
+                        // Must also check min_days_btwn_flights, if the logic doesn't work, we don't continue.
+                        if (cost_child2 < best_cost && min_days_btwn_flights_logic(path2, variable_ordering)) {
                             // Now check if this candidate works
-                            // System.out.println("Now in case 2, checking flight logic...");
                             if (check_flight_logic(path2, variable_ordering)) {
-                                System.out.println("Case 2 update, node#" + expanded_nodes + ", new cost: " + cost_child2 + ", new path: " + current_path2);
+                                System.out.println("Case 2 update, node #" + expanded_nodes + ", new cost: " + cost_child2 + ", new path: " + current_path2);
                                 best_cost = cost_child2;
                                 best_path = current_path2;
                             } else {
                                 Node child = new Node(node, path2); 
                                 st.push(child);
-                                stackElements++;
                             }
                         }
                     } else {
                         if (!check_pruning(path2, costs, constraints)) {
                             Node child = new Node(node, path2);
                             st.push(child);
-                            stackElements++;
                         }
                     }
                 }

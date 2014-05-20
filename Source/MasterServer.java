@@ -316,22 +316,63 @@ public class MasterServer {
     }
 
 
+    /**
+     * Helper to see if a java string represents an integer
+     */
+    public static boolean isInteger(String s) {
+        try { 
+            Integer.parseInt(s); 
+        } catch(NumberFormatException e) { 
+            return false; 
+        }
+        // only got here if we didn't return false
+        return true;
+    }
+
+
+    /**
+     * Called when the user has submitted an optional argument to have some minimum number of days between flights
+     * Exits program if there are not enough days in range to satisfy the user's requests.
+     */
+     public static void checkCityDateLogic(int numCities, int numDays, int minDaysBtwnFlights) {
+         if ( ((minDaysBtwnFlights + 1) * (numCities - 1) + 1)  > numDays ) {
+             System.out.println("Error: there are not enough days to satisfy the minimum days between flights criteria.");
+             System.exit(-1);
+         }
+     }
+
+
     /*
      * Important method! This is what the client will call, and the server uses it to solve the problem
      * It's split into a lot of stages so that it's clear what's going on. And filled with helpful prints.
+     * Note that 'inputFromClient' can have an optional number at the end to indicate days between flights.
+     * TODO We might consider splitting some of this stuff into their own methods later.
      */
     public String[] startProblem(String inputFromClient) {
 
-        // Parse the input from the client, print out some stuff for sanity checks
+        // Parse the input from the client
         String[] input = inputFromClient.split(" ");
+        int numInputs = input.length;
         String startDate = input[0];
         String endDate = input[1];
         Dates d = new Dates(startDate, endDate);
         String[] dates = d.obtainDates();
-        String[] cities = new String[input.length-2];
-        for (int i = 2; i < input.length; i++) {
-            cities[i-2] = input[i];
+
+        // Check for the last optional argument to see if it's an integer
+        String lastInput = input[numInputs-1];
+        int minDaysBtwnFlights = 0;
+        if (isInteger(lastInput)) {
+            minDaysBtwnFlights = Integer.parseInt(lastInput);
+            numInputs--;
+            checkCityDateLogic(numInputs-2, dates.length, minDaysBtwnFlights); // Sanity check
         }
+        System.out.println("mindays is " + minDaysBtwnFlights);
+        String[] cities = new String[numInputs-2];
+        for (int i = 0; i < numInputs-2; i++) {
+            cities[i] = input[i+2];
+        }
+
+        // Sanity check to the client
         System.out.println("Starting the problem! Here's our input:");
         System.out.println("All dates: " + Arrays.toString(dates));
         System.out.println("All cities: " + Arrays.toString(cities));
@@ -355,7 +396,7 @@ public class MasterServer {
 
         // Solve the IP problem (also time how long it takes)
         System.out.println("\nNow calling Balas' algorithm...");
-        Balas newProblem = new Balas(constraints, costs, flights);
+        Balas newProblem = new Balas(constraints, costs, flights, minDaysBtwnFlights);
         startTime = System.currentTimeMillis();
         List<Flight> best_flights = newProblem.solve();
         String balasTime = computeTime(System.currentTimeMillis() - startTime);
