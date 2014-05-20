@@ -263,7 +263,7 @@ programming is, in fact, an NP-hard problem, and the binary case is NP-complete~
 method\footnote{The Simplex Method performs well in practice but its runtime has historically been difficult to evaluate, as in the worst case it
 \emph{can} run in exponential time~\cite{Klee1972}. The simplex algorithm has \emph{smoothed complexity} polynomial in the input size; for details
 about this, see~\cite{Spielman:2004:SAA:990308.990310}.} are used to solve linear programming problems. Note that simply taking a solution to the
-linear programming problem and then rounding it to form a ``solution'' to the integer problem will not work, as we show in Section~\ref{app:lin_vs_int}.
+linear programming problem and then rounding it to form a ``solution'' to the integer problem will not work, as we show in Appendix~\ref{app:lin_vs_int}.
 
 \subsubsection{Consecutive Flights in Different Cities}
 
@@ -273,20 +273,38 @@ choice of cities. It makes no sense, for instance, to have flights $f_i$ and $f_
 $f_{i+1}$ takes him or her from Paris to London.
 
 Unfortunately, fixing the flight ordering by adding in constraints is challenging and requires a large number of equations. Our implementation only
-adds in one layer of constraints for here, and defers a complete flight logic check to the code that actually generates the tree. Thus, we resolve
-this by just solving the problem as we would normally without the constraint, and then checking all proposed solutions for flight logic before
-accepting them.
+adds in one layer of constraints for here, and defers a complete flight logic check to the code that actually generates the tree. Specifically, for
+all pairs of days $t$ and cities $c$ such that $t \in \{1,2,\ldots, m-1\}$ and $c \in \{1,2,\ldots,n\}$ we add in the following constraints:
+\begin{align}
+\underbrace{\left(\sum_{i\ne c} x_{ict} \right)}_{\text{Term 1}} + \underbrace{\left( \sum_{j\ne c}\sum_{k\ne j} x_{jkt^+}\right)}_{\text{Term 2}} \le 1,
+\end{align}
+% TODO I think it still works for n+1 days but let me think about it and put stuff in the appendix.
 
-For more details about this, see Section~\ref{app:flight_logic}.
+where $t^+$ is shorthand for $t+1$ (which explains why we don't set $t$ to be $m$). Term 1 represents entering city $c$, and Term 2 represents leaving
+any city other than $c$. Notice that by our previous constraints, both Term 1 and Term 2 are already bounded by one, so if both are one, then this
+indicates that two flights on back-to-back days are not logically consistent. We therefore have the following lemma.
 
-{\bf TODO}
+\begin{lem}\label{lem:correctness}
+Assuming that we have $n$ cities and $n$ days as input, solving the binary integer programming problem using the previous constraints will return a
+valid, logically consistent solution.
+\end{lem}
+
+Of course, this doesn't prevent the problem of having more days than flights. We resolve that issue by not using constraints at all. We just run the
+problem and, each time a candidate solution is proposed, check its complete vector for logical consistency. Appendix~\ref{app:flight_logic} describes
+our handling of flight logic in more detail.
 
 \subsection{Using Balas' Additive Algorithm}\label{sec:balas}
 
-We will use this algorithm to solve Integer Programming. See~\cite{doi:10.1287/opre.13.4.517}.
+To actually solve the binary integer programming problem, we use Balas' Additive Algorithm~\cite{doi:10.1287/opre.13.4.517}. This is a special case of
+the larger class of branch-and-bound algorithms, which are used to solve integer programming problems. Branch-and-bound algorithms consist of a
+systematic enumeration of all candidate solutions, where large subsets of fruitless candidates are discarded by using upper and lower estimated bounds
+of the quantity being optimized~\cite{Clausen1997}.
 
-{\bf TODO}
-
+Balas' algorithm makes use of the special properties of binary integer programming problems. Assuming that the costs are all non-negative, and that
+variables are indexed according to cost, we want to (1) set all variables to zero in order to minimize total cost, and (2) if we cannot set all
+variables to zero due to constraints, then we wish to set the variable with smallest index to one. What results is a rooted tree where each path of
+$n$ nodes from the root indicates an assignment to the first $n$ variables. One can use a standard depth-first search to implement the algorithm.  For
+brevity we elide additional technical details of the algorithm and refer the reader to Appendix~\ref{app:balas}.
 
 
 
@@ -346,7 +364,7 @@ Section~\ref{sec:master_server}).
 The master server is the workhorse of our system. It takes in the user request sent in from the front-end server from
 Section~\ref{sec:front_end_server}. When a request comes in, the master sever runs a variety of checks and parses the input to make sure that the
 request is sound. For instance, given the optional argument where the user can specify the minimum number of days between flights, the server checks
-that the full date range is large enough to allow that case to happen. For the full list of checks we implement, see Section~\ref{app:input_check}. We
+that the full date range is large enough to allow that case to happen. For the full list of checks we implement, see Appendix~\ref{app:input_check}. We
 do not catch all possible cases of possible pathological inputs, in part because it is challenging to do so in a command line argument, and also
 because we trust our users not to wreck the system. (There has been substantial research in the literature about trust management in systems, such
 as~\cite{Blaze:2001:RTM:380171.380186}; for now we eschew these details.)
@@ -397,8 +415,6 @@ time-consuming task of the full system.
 \subsection{Runtime Analysis}
 {\bf TODO}
 
-\subsection{Feasibility}
-{\bf TODO}
 
 
 \section{Limitations}\label{sec:limitations}
@@ -459,14 +475,22 @@ giving us a finer grain of control. It is unclear how much this would complicate
 
 \subsection{One Ticket, Multiple Flights}
 
-One issue that currently seems outside the realm of our ability to solve is that even if we search for a direct flight route and find the cheapest
-ticket, it may still not be the cheapest way to actually get there. \textbf{TODO, need to confirm with Lucky...}
+One issue related to optimality is that even if we search for all possible direct flight combinations and find the cheapest collective route, it may
+still not be the best possible route. Consider a hypothetical situation where a user wants to travel to Boston, Chicago, London, and Beijing.
+Analyzing all pairwise combinations might result in the following route: Chicago to Boston, Boston to London, London to Beijing, then Beijing to
+Chicago.  Assume for simplicity that each flight costs \$500. But there might exist a flight from Chicago to London that, according to the Matrix
+Airfare Search, costs \$750, \emph{but makes a stop at Boston}, despite how the cheapest direct flight from Chicago to Boston costs \$500 (and
+similarly for Boston and London). In other words, a better route would be Chicago to London (making a stop at Boston), then London to Beijing, then
+Beijing to Chicago, which would cost \$1750, compared to the \$2000 route that our solution would provide. To resolve this, we are looking to expand
+our crawler so that it can detect the stopgap cities that are part of a single flight.
 
 \subsection{Web Crawler Issues}
 
-In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. It has one problem,
-though, which is that it can sometimes get stuck on a Matrix ITA page after searching the price for a flight. Typically, this happens when we have it
-running ``in the background''; bringing it back up to the foreground successfully makes it continue.
+In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. One problem, though, is
+that it sometimes gets stuck on a Matrix Airfare Search page after searching the price for a flight. Typically, this happens when we have it running
+``in the background''; bringing it back up to the foreground successfully makes it continue. There are also some problems with foreign currency units.
+For now, we assume that the person using this service will originate from the United States, which forces money to be in dollars.
+
 
 \section{Conclusion}\label{sec:conclusion}
 

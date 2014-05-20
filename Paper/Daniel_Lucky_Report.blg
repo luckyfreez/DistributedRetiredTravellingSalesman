@@ -10,45 +10,45 @@ refers to entry "conf/osdi/2006", which doesn't exist
 Warning--I didn't find a database entry for "conf/osdi/2006"
 Warning--I didn't find a database entry for "conf/focs/2011"
 Warning--empty booktitle in Blaze:2001:RTM:380171.380186
-You've used 14 entries,
+You've used 15 entries,
             2773 wiz_defined-function locations,
-            719 strings with 7802 characters,
-and the built_in function-call counts, 6835 in all, are:
-= -- 649
-> -- 315
-< -- 18
-+ -- 107
-- -- 93
-* -- 488
-:= -- 1036
-add.period$ -- 61
-call.type$ -- 14
-change.case$ -- 67
-chr.to.int$ -- 14
-cite$ -- 29
-duplicate$ -- 348
-empty$ -- 586
-format.name$ -- 115
-if$ -- 1503
+            727 strings with 7944 characters,
+and the built_in function-call counts, 7317 in all, are:
+= -- 699
+> -- 325
+< -- 20
++ -- 111
+- -- 96
+* -- 514
+:= -- 1101
+add.period$ -- 64
+call.type$ -- 15
+change.case$ -- 71
+chr.to.int$ -- 15
+cite$ -- 31
+duplicate$ -- 377
+empty$ -- 631
+format.name$ -- 119
+if$ -- 1614
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 16
-newline$ -- 89
-num.names$ -- 64
-pop$ -- 145
+missing$ -- 17
+newline$ -- 94
+num.names$ -- 68
+pop$ -- 154
 preamble$ -- 1
-purify$ -- 57
+purify$ -- 60
 quote$ -- 0
-skip$ -- 267
+skip$ -- 292
 stack$ -- 0
-substring$ -- 253
-swap$ -- 69
-text.length$ -- 8
+substring$ -- 287
+swap$ -- 79
+text.length$ -- 9
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 134
+type$ -- 145
 warning$ -- 1
-while$ -- 65
+while$ -- 71
 width$ -- 0
-write$ -- 221
+write$ -- 234
 (There were 2 error messages)

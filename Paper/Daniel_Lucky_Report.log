@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  20 MAY 2014 16:01
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  20 MAY 2014 19:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -506,82 +506,80 @@ Package amsmath Warning: Foreign command \atopwithdelims;
 (amsmath)                 on input line 253.
 
 [3 <./Images/bad_solution.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-<Images/servers.png, id=111, 396.48125pt x 200.75pt>
+<Images/servers.png, id=114, 396.48125pt x 200.75pt>
 File: Images/servers.png Graphic file (type png)
  <use Images/servers.png>
-Package pdftex.def Info: Images/servers.png used on input line 307.
+Package pdftex.def Info: Images/servers.png used on input line 325.
 (pdftex.def)             Requested size: 234.8775pt x 118.92851pt.
 
-<Images/front_end_server2.png, id=115, 767.86874pt x 428.60126pt>
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [4]
+<Images/front_end_server2.png, id=138, 767.86874pt x 428.60126pt>
 File: Images/front_end_server2.png Graphic file (type png)
 
 <use Images/front_end_server2.png>
-Package pdftex.def Info: Images/front_end_server2.png used on input line 326.
+Package pdftex.def Info: Images/front_end_server2.png used on input line 344.
 (pdftex.def)             Requested size: 234.8775pt x 131.09923pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [4 <./Images/servers.png>]
-Underfull \vbox (badness 1946) has occurred while \output is active []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [5 <./Images/front_end_server2.png>]
+ [5 <./Images/servers.png> <./Images/front_end_server2.png>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [6]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 (./Daniel_Lucky_Report.bbl
 Underfull \hbox (badness 1082) in paragraph at lines 25--30
 []\OT1/ptm/m/n/10 Blaze, Matt, Feigen-baum, Joan, Ioan-ni-dis, John, and
  []
 
-) [7]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 552.
- [8
+[7]) [8]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 578.
+ [9
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 552.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 578.
  (./Daniel_Lucky_Report.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 552.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 552.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 578.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 578.
 Package rerunfilecheck Info: File `Daniel_Lucky_Report.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 552.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 578.
  ) 
 Here is how much of TeX's memory you used:
- 7703 strings out of 493315
- 110188 string characters out of 6137904
- 205875 words of memory out of 5000000
- 10942 multiletter control sequences out of 15000+600000
+ 7711 strings out of 493315
+ 110303 string characters out of 6137904
+ 206925 words of memory out of 5000000
+ 10946 multiletter control sequences out of 15000+600000
  32308 words of font info for 70 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 29i,11n,45p,257b,421s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 29i,16n,45p,257b,429s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/te
 xlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/tex
 live/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texli
 ve/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive
 /2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2
-013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2013
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2013/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2013/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2013/texm
-f-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2013/texmf-dist/f
-onts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1
-/urw/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times
-/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri8a.p
-fb>
-Output written on Daniel_Lucky_Report.pdf (8 pages, 405422 bytes).
+013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2013
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2013/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2013/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2013/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2013/texmf-d
+ist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2013/texmf-dist/font
+s/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/ur
+w/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/ut
+mr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+
+Output written on Daniel_Lucky_Report.pdf (9 pages, 418401 bytes).
 PDF statistics:
- 254 PDF objects out of 1000 (max. 8388607)
- 222 compressed objects within 3 object streams
- 74 named destinations out of 1000 (max. 500000)
+ 268 PDF objects out of 1000 (max. 8388607)
+ 234 compressed objects within 3 object streams
+ 78 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

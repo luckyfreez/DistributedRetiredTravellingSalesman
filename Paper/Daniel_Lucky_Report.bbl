@@ -1,4 +1,4 @@
-\begin{thebibliography}{14}
+\begin{thebibliography}{15}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -34,6 +34,11 @@ Christofides, Nicos.
   problem.
 \newblock Technical Report 388, Graduate School of Industrial Administration,
   Carnegie Mellon University, 1976.
+
+\bibitem[Clausen(1997)]{Clausen1997}
+Clausen, Jens.
+\newblock {Branch and bound algorithms-principles and examples}.
+\newblock \emph{Parallel Computing in Optimization}, pp.\  239--267, 1997.
 
 \bibitem[Dantzig(1963)]{GVK180926950}
 Dantzig, {George B.}
