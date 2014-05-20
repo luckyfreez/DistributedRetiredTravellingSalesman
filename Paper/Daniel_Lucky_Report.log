@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  20 MAY 2014 02:48
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  20 MAY 2014 14:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -506,80 +506,56 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 <Images/servers.png, id=111, 396.48125pt x 200.75pt>
 File: Images/servers.png Graphic file (type png)
  <use Images/servers.png>
-Package pdftex.def Info: Images/servers.png used on input line 306.
+Package pdftex.def Info: Images/servers.png used on input line 307.
 (pdftex.def)             Requested size: 234.8775pt x 118.92851pt.
 
-<Images/front_end_server.png, id=116, 782.925pt x 386.44376pt>
-File: Images/front_end_server.png Graphic file (type png)
+<Images/front_end_server2.png, id=115, 767.86874pt x 428.60126pt>
+File: Images/front_end_server2.png Graphic file (type png)
 
-<use Images/front_end_server.png>
-Package pdftex.def Info: Images/front_end_server.png used on input line 325.
-(pdftex.def)             Requested size: 234.8775pt x 115.92812pt.
+<use Images/front_end_server2.png>
+Package pdftex.def Info: Images/front_end_server2.png used on input line 326.
+(pdftex.def)             Requested size: 234.8775pt x 131.09923pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [4 <./Images/servers.png>]
-Underfull \vbox (badness 2103) has occurred while \output is active []
+Underfull \vbox (badness 1946) has occurred while \output is active []
 
- [5 <./Images/front_end_server.png>] (./Daniel_Lucky_Report.bbl
-Underfull \hbox (badness 2735) in paragraph at lines 33--39
-[]\OT1/ptm/m/n/10 Dantzig, George B.  \OT1/ptm/m/it/10 Lin-ear pro-gram-ming an
-d ex-
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [5 <./Images/front_end_server2.png>]
+Underfull \vbox (badness 4193) has occurred while \output is active []
+
+
+(./Daniel_Lucky_Report.bbl
+Underfull \hbox (badness 1082) in paragraph at lines 25--30
+[]\OT1/ptm/m/n/10 Blaze, Matt, Feigen-baum, Joan, Ioan-ni-dis, John, and
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 33--39
-\OT1/ptm/m/it/10 ten-sions\OT1/ptm/m/n/10 .  Rand Cor-po-ra-tion Re-search Stud
-y.
- []
-
-
-Underfull \hbox (badness 1019) in paragraph at lines 33--39
-\OT1/ptm/m/n/10 Prince-ton Univ. Press, Prince-ton, NJ, 1963.  URL
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 33--39
-[][]$\OT1/pcr/m/n/10 http : / / gso . gbv . de / DB = 2 . 1 / CMD ? ACT =
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 33--39
-\OT1/pcr/m/n/10 SRCHA&SRT = YOP&IKT = 1016&TRM = ppn +
- []
-
-
-Underfull \hbox (badness 2486) in paragraph at lines 75--83
-[]\OT1/ptm/m/n/10 Moemke, To-bias and Svens-son, Ola.  Ap-prox-i-mat-
- []
-
-
-Underfull \hbox (badness 1314) in paragraph at lines 75--83
-\OT1/ptm/m/n/10 ing graphic tsp by match-ings.  In \OT1/ptm/m/it/10 Pro-ceed-in
-gs of
- []
-
-) [6]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 469.
- [7
+[6]) [7
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 469.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 522.
+ [8
+
+]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 522.
  (./Daniel_Lucky_Report.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 469.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 469.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 522.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 522.
 Package rerunfilecheck Info: File `Daniel_Lucky_Report.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 469.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 522.
  ) 
 Here is how much of TeX's memory you used:
- 7694 strings out of 493315
- 109979 string characters out of 6137904
- 205815 words of memory out of 5000000
- 10938 multiletter control sequences out of 15000+600000
+ 7702 strings out of 493315
+ 110175 string characters out of 6137904
+ 205910 words of memory out of 5000000
+ 10941 multiletter control sequences out of 15000+600000
  31801 words of font info for 69 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 29i,11n,45p,257b,421s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 29i,11n,45p,257b,441s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/te
 xlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/tex
@@ -595,10 +571,10 @@ onts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1
 /urw/times/utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times
 /utmr8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/times/utmri8a.p
 fb>
-Output written on Daniel_Lucky_Report.pdf (7 pages, 392302 bytes).
+Output written on Daniel_Lucky_Report.pdf (8 pages, 400746 bytes).
 PDF statistics:
- 249 PDF objects out of 1000 (max. 8388607)
- 218 compressed objects within 3 object streams
- 69 named destinations out of 1000 (max. 500000)
+ 253 PDF objects out of 1000 (max. 8388607)
+ 221 compressed objects within 3 object streams
+ 74 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

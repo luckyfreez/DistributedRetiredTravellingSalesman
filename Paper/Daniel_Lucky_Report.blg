@@ -9,45 +9,46 @@ A bad cross reference---entry "conf/osdi/PetersonBFM06"
 refers to entry "conf/osdi/2006", which doesn't exist
 Warning--I didn't find a database entry for "conf/osdi/2006"
 Warning--I didn't find a database entry for "conf/focs/2011"
-You've used 13 entries,
+Warning--empty booktitle in Blaze:2001:RTM:380171.380186
+You've used 14 entries,
             2773 wiz_defined-function locations,
-            715 strings with 7888 characters,
-and the built_in function-call counts, 6224 in all, are:
-= -- 601
-> -- 276
-< -- 16
-+ -- 94
-- -- 81
-* -- 444
-:= -- 958
-add.period$ -- 63
-call.type$ -- 13
-change.case$ -- 60
-chr.to.int$ -- 13
-cite$ -- 26
-duplicate$ -- 314
-empty$ -- 532
-format.name$ -- 102
-if$ -- 1365
+            719 strings with 7802 characters,
+and the built_in function-call counts, 6835 in all, are:
+= -- 649
+> -- 315
+< -- 18
++ -- 107
+- -- 93
+* -- 488
+:= -- 1036
+add.period$ -- 61
+call.type$ -- 14
+change.case$ -- 67
+chr.to.int$ -- 14
+cite$ -- 29
+duplicate$ -- 348
+empty$ -- 586
+format.name$ -- 115
+if$ -- 1503
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 15
-newline$ -- 90
-num.names$ -- 60
-pop$ -- 122
+missing$ -- 16
+newline$ -- 89
+num.names$ -- 64
+pop$ -- 145
 preamble$ -- 1
-purify$ -- 51
+purify$ -- 57
 quote$ -- 0
-skip$ -- 240
+skip$ -- 267
 stack$ -- 0
-substring$ -- 219
-swap$ -- 59
-text.length$ -- 6
+substring$ -- 253
+swap$ -- 69
+text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 123
-warning$ -- 0
-while$ -- 59
+type$ -- 134
+warning$ -- 1
+while$ -- 65
 width$ -- 0
-write$ -- 219
+write$ -- 221
 (There were 2 error messages)

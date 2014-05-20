@@ -292,19 +292,20 @@ We will use this algorithm to solve Integer Programming. See~\cite{doi:10.1287/o
 
 \section{Systems Component}\label{sec:systems}
 
-Our code that solves the Distributed Retired Traveling Salesman Problem is made up of several components that form a multi-tiered client-server model
-(for an introduction to the client-server model, see~\cite{Tanenbaum:2006:DSP:1202502}).  We have a front-end server, a master server, and a group of
-slave servers in the system, as shown in Figure~\ref{fig:machines}. The slave servers come from machines that we use. Originally, we wanted to use
-PlanetLab~\cite{conf/osdi/PetersonBFM06}, which is a global platform for deploying and evaluating network services and allows people to use portions
-of other PlanetLab computers. This was too complicated to work with, so we stuck with the Williams lab computers.
+We now switch topics and discuss the implementation side. Our code that solves the Distributed Retired Traveling Salesman Problem is made up of
+several components that form a multi-tiered client-server model (for an introduction to the client-server model,
+see~\cite{Tanenbaum:2006:DSP:1202502}).  We have a front-end server, a master server, and a group of slave servers in the system, as shown in
+Figure~\ref{fig:machines}. The slave servers come from machines that we use. Originally, we wanted to use PlanetLab~\cite{conf/osdi/PetersonBFM06},
+which is a global platform for deploying and evaluating network services and allows people to use portions of other PlanetLab computers. This was too
+complicated to work with, so we stuck with the Williams lab computers.
 
-{\bf TODO}
+{\bf TODO We need to fix this up ... and once I get what we're doing here, we can change the slave sever section.}
 
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{servers}}
-\caption{This represents our setup.}
+\caption{{\bf TODO. We need to change this.}}
 \label{fig:machines}
 \end{center}
 \vskip -0.2in
@@ -315,54 +316,75 @@ of other PlanetLab computers. This was too complicated to work with, so we stuck
 The front-end server acts as a point of communication between the client\footnote{Somewhat impolitely, we can refer to the set of clients, minus us,
 as the ``ignorant masses.''} and our master server. It is a Python script that starts on the command line and outputs introductory messages to the
 client so that he or she knows how to use our system. The front-end serve receives user input, forwards the request to the master server (step
-\texttt{1} in Figure~\ref{fig:machines}), listens to the master for the result (step \texttt{6} in Figure~\ref{fig:machines}), and displays the result
-when it is ready. The result that we print back to the user is currently the single best list of the flights ordered by departure date. If there is
-more than one optimal solution, it only returns one of them.
+\texttt{1} in Figure~\ref{fig:machines}), listens to the master for the result (step \texttt{6}), and displays the result when it is ready. The result
+that we print back to the user is currently the single best list of the flights ordered by departure date. If there is more than one optimal solution,
+it only returns one of them.
 
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{front_end_server}}
+\centerline{\includegraphics[width=\columnwidth]{front_end_server2}}
 \caption{This shows our front-end server.}
 \label{fig:front_end_server}
 \end{center}
 \vskip -0.2in
 \end{figure}
 
-Figure~\ref{fig:front_end_server} shows a version of our front-end server (we change its design fairly frequently). Here, the hypothetical user made a
-request to find the cheapest flight route that touches Denver, Atlanta, and New York City from the four day period of July 3, 2014 to  July 7, 2014.
-Our code ran and the master server fed back the resulting flight ordering of Atlanta to Denver, then Denver to New York City, then New York City back
-to Atlanta.
+Figure~\ref{fig:front_end_server} shows a version of our front-end server (we frequently change its design). Here, the hypothetical user made a
+request to find the cheapest flight route that touches Chicago, Boston, and Seattle in the four day period of June 11, 2014 to June 14, 2014.
+Our code ran and the master server returned the (valid) flight ordering of Seattle to Chicago, Chicago to Boston, then Boston to Seattle.
 
-If time permits, we may transform the command-line interface to a website, which will expand our audience of potential clients. It is also
-straightforward to add more optional arguments to the command line, so the user might add in an extra flag that could indicate that he or she wishes
-to have a minimum of three days between flights.
+Notice that the front-end server has an optional argument where a user can insert a number at the end of their request to indicate the minimum number
+of days between any two flights. (The example from Figure~\ref{fig:front_end_server} just happened not to use it.) It is straightforward to add
+more of these optional arguments. If time permits, we also plan to transform the command-line interface to a website, which will expand our audience
+of potential clients. The front-end server does only minimal checks of the input and defers the parsing to the master server (see
+Section~\ref{sec:master_server}).
 
 
 \subsection{Master Server}\label{sec:master_server}
 
-The Master server is the brain of the system. It listens to the user request sent from the front-end server (step \texttt{1} in
-Figure~\ref{fig:machines}). When a request comes in, it first comes up with a list of flight prices on all possible dates and for all possible
-destinations in the problem that we need to get for the computation, distributes the flight price queries among all the slaves (step \texttt{2}),
-gathers all the price data back from the slaves (step \texttt{3}), and combines them. It then upload the combined data to a distributed file system to
-make the data available for parallel computing on all the slaves. Then it starts the parallel computing for the cheapest route using a distributed
-zero-one linear programming algorithm on all slaves (steps \texttt{4} and \texttt{5}). After the computation, it sends the results of the cheapest
-route back to the front-end server (step \texttt{6}).
+The master server is the workhorse of our system. It takes in the user request sent in from the front-end server from
+Section~\ref{sec:front_end_server}. When a request comes in, the master sever runs a variety of checks and parses the input to make sure that the
+request is sound. For instance, given the optional argument where the user can specify the minimum number of days between flights, the server checks
+that the full date range is large enough to allow that case to happen. For the full list of checks we implement, see Section~\ref{app:input_check}. We
+do not catch all possible cases of possible pathological inputs, in part because it is challenging to do so in a command line argument, and also
+because we trust our users not to wreck the system. (There has been substantial research in the literature about trust management in systems, such
+as~\cite{Blaze:2001:RTM:380171.380186}; for now we eschew these details.)
 
-{\bf TODO! This needs more information.}
+After parsing the input, the master sever has two important tasks. The first is that it needs to obtain the cheapest flight that goes from cities $i$
+to $j$ on day $t$ for all possible combinations of $i, j,$ and $t$ as specified by the user. It accomplishes this by calling the crawler server, also
+known as the ``slave server,'' which we discuss in Section~\ref{sec:slave_server}. Once it has all the flights, it proceeds to its next major task,
+which is to transform the flight information and user request into inputs suitable for binary integer programming. Computing the cost vector is easy;
+the challenging part is making sure that the constraints are well-defined. Once the master sever has computed the necessary constraint matrix, it will
+call the binary integer programming solver.  As discussed in Section~\ref{sec:balas}, this runs Balas' Additive Algorithm to create the final vector
+of variable assignments where $x_{ijt} = 1$ indicates that the cheapest valid route involves that corresponding flight. It is possible to distribute
+Balas' Additive Algorithm, but for ease of implementation, the algorithm runs on only one machine and is essentially part of the master server.
+
+Upon completion, the master server feeds the result back to the client server.
+
+% TODO This old description is not really correct.
+% The Master server is the brain of the system. It listens to the user request sent from the front-end server (step \texttt{1} in
+% Figure~\ref{fig:machines}). When a request comes in, it first comes up with a list of flight prices on all possible dates and for all possible
+% destinations in the problem that we need to get for the computation, distributes the flight price queries among all the slaves (step \texttt{2}),
+% gathers all the price data back from the slaves (step \texttt{3}), and combines them. It then upload the combined data to a distributed file system to
+% make the data available for parallel computing on all the slaves. Then it starts the parallel computing for the cheapest route using a distributed
+% zero-one linear programming algorithm on all slaves (steps \texttt{4} and \texttt{5}). After the computation, it sends the results of the cheapest
+% route back to the front-end server (step \texttt{6}).
 
 \subsection{Slave Server}\label{sec:slave_server}
 
-We have a group of slave servers that listens to the command of the master server and does the distributed tasks of flight price querying (using the
-web crawler we write) and parallel zero-one linear programming.
+The main purpose of the slave server is to use a web crawler to obtain prices of real airlines. This information is then relayed back to the master,
+which uses it for the binary integer programming formulation. To look up the prices, we implemented a web crawler that extracts prices from the Matrix
+Airfare Search\footnote{\url{http://matrix.itasoftware.com/}} database, powered by ITA Software and the best flight database currently available. We
+currently make use of only one slave server, and the consequence is that for ``small'' inputs, the flight checking typically is the most
+time-consuming task of the full system.
 
-The slave server uses this! Be clear on that!
-
-We will use the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}} database to obtain information about our flights; the information
-itself will be extracted with our own web crawler. We coin this ``The Retired Traveler Problem,'' primarily because if we assume the dates are set far
-enough apart, it would interfere with a non-retired person's occupation. For details on the real problem, see sources such as.
-
-{\bf TODO! This needs more information.}
+% TODO This is not really correct.
+% We have a group of slave servers that listens to the command of the master server and does the distributed tasks of flight price querying (using the
+% web crawler we write) and parallel zero-one linear programming. We will use the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}}
+% database to obtain information about our flights; the information itself will be extracted with our own web crawler. We coin this ``The Retired
+% Traveler Problem,'' primarily because if we assume the dates are set far enough apart, it would interfere with a non-retired person's occupation. For
+% details on the real problem, see sources such as.
 
 
 \section{Experiments and Results}\label{sec:experiments_results}
@@ -381,24 +403,51 @@ enough apart, it would interfere with a non-retired person's occupation. For det
 
 \section{Limtiations}\label{sec:limitations}
 
+This section addresses a number of issues briefly touched upon in Section~\ref{sec:int_prog_form} and other areas of this paper.
+
+\subsection{Practical Usage}
+
+One important question to consider is 
+
 {\bf TODO}
 
 \subsection{One Flight a Day}
-{\bf TODO}
 
-Explain that matrix ita will sometimes give us two or three flights for ``one route'' so it actually works out ok...in some ways.
+As stated earlier, one of our key assumptions is that every flight lasts one day and each day can only have one flight. In real life, however, it is
+common for people to take two, or even three, flights in a day, especially if their departure or destination cities are not one of the major airline
+hubs such as Chicago O'Hare or Hartsfield-Jackson Atlanta.
+
+This limitation is, in fact, often not a problem. The key is that when looking up flights between two cities, Matrix ITA defaults to searching not
+only for direct flights, but also for flight routes that make one or two stops. So when making a request to go from Albany to Los Angeles, our crawler
+will pick the cheapest flight that appears on the list, which almost always makes one stop at airports such as Chicago or Charlotte. So even though
+our code might output \texttt{[ALB->ORD, 07/07/2014, \$400]}, there will be another flight ``hidden'' in our route.
+
+A more problematic situation with our ``one flight'' a day limitation is that it may be cheaper to take two separate flights that touch three major
+cities. For example, if we wanted to travel to Chicago, Atlanta, and Denver in some order, the cheapest route 
+
+
+{\bf TODO}
 
 \subsection{One Ticket, Multiple Flights}
 {\bf TODO}
 
-Explain that this will give us problems.
+
+\subsection{Web Crawler Issues}
+
+{\bf Details on crawler...}
+
+In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. There are still several
+points of concern related to the crawler.
+
+{\bf Talk about my concerns...}
 
 \section{Conclusion}\label{sec:conclusion}
 
 We view this as a beginning, rather than an end, of the Distributed Retired Traveling Salesman Problem. There are several ways of proceeding from our
 work.
 
-\begin{itemize}\label{noitemsep}
+\begin{itemize}[noitemsep]
+    \item We could address the limitations we discussed in Section~\ref{sec:limitations}.
     \item We could improve the aesthetics of our implementation. Most prominently, our front-end server is in the form of a command-line interface,
     but many people do not know how to use those. Consequently, we could reach out to and would be much more comfortable with a streamlined website.
 \end{itemize}
@@ -459,6 +508,10 @@ Here, we should describe the constraints that we added in for flight logic. I on
 \section{Balas' Additive Algorithm}\label{app:balas}
 
 {\bf TODO}
+
+\section{Checking User Input}\label{app:input_check}
+
+We should describe the full list of checks we make, and see what might go wrong...
 
 \section{Additional Experiments and Examples}\label{app:additional_experiments_and_examples}
 

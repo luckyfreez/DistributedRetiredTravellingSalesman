@@ -1,4 +1,4 @@
-\begin{thebibliography}{13}
+\begin{thebibliography}{14}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -19,8 +19,14 @@ Balas, Egon.
   variables.
 \newblock \emph{Operations Research}, 13\penalty0 (4):\penalty0 517--546, 1965.
 \newblock \doi{10.1287/opre.13.4.517}.
-\newblock URL
-  \url{http://pubsonline.informs.org/doi/abs/10.1287/opre.13.4.517}.
+
+\bibitem[Blaze et~al.(1999)Blaze, Feigenbaum, Ioannidis, and
+  Keromytis]{Blaze:2001:RTM:380171.380186}
+Blaze, Matt, Feigenbaum, Joan, Ioannidis, John, and Keromytis, Angelos~D.
+\newblock Secure internet programming.
+\newblock chapter The Role of Trust Management in Distributed Systems Security,
+  pp.\  185--210. Springer-Verlag, London, UK, UK, 1999.
+\newblock ISBN 3-540-66130-1.
 
 \bibitem[Christofides(1976)]{Chr76}
 Christofides, Nicos.
@@ -34,8 +40,6 @@ Dantzig, {George B.}
 \newblock \emph{Linear programming and extensions}.
 \newblock Rand Corporation Research Study. Princeton Univ. Press, Princeton,
   NJ, 1963.
-\newblock URL
-  \url{http://gso.gbv.de/DB=2.1/CMD?ACT=SRCHA&SRT=YOP&IKT=1016&TRM=ppn+180926950&sourceid=fbw_bibsonomy}.
 
 \bibitem[Franklin(2002)]{opac-b1105716}
 Franklin, Joel~N.
@@ -43,15 +47,12 @@ Franklin, Joel~N.
   programming, fixed-point theorems}.
 \newblock Classics in applied mathematics. SIAM, Philadelphia, 2002.
 \newblock ISBN 0-89871-509-1.
-\newblock URL \url{http://opac.inria.fr/record=b1105716}.
 
 \bibitem[Gharan et~al.(2011)Gharan, Saberi, and Singh]{conf/focs/GharanSS11}
 Gharan, Shayan~Oveis, Saberi, Amin, and Singh, Mohit.
 \newblock A randomized rounding approach to the traveling salesman problem.
 \newblock In Ostrovsky, Rafail (ed.), \emph{FOCS}, pp.\  550--559. IEEE, 2011.
 \newblock ISBN 978-1-4577-1843-4.
-\newblock URL
-  \url{http://dblp.uni-trier.de/db/conf/focs/focs2011.html#GharanSS11}.
 
 \bibitem[Karp(1972)]{Kar72}
 Karp, R.
@@ -79,7 +80,6 @@ Moemke, Tobias and Svensson, Ola.
   USA, 2011. IEEE Computer Society.
 \newblock ISBN 978-0-7695-4571-4.
 \newblock \doi{10.1109/FOCS.2011.56}.
-\newblock URL \url{http://dx.doi.org/10.1109/FOCS.2011.56}.
 
 \bibitem[Peterson et~al.(2006)Peterson, Bavier, Fiuczynski, and
   Muir]{conf/osdi/PetersonBFM06}
@@ -88,8 +88,6 @@ Peterson, Larry~L., Bavier, Andy~C., Fiuczynski, Marc~E., and Muir, Steve.
 \newblock In Bershad, Brian~N. and Mogul, Jeffrey~C. (eds.), \emph{OSDI}, pp.\
   351--366. USENIX Association, 2006.
 \newblock ISBN 1-931971-47-1.
-\newblock URL
-  \url{http://dblp.uni-trier.de/db/conf/osdi/osdi2006.html#PetersonBFM06}.
 
 \bibitem[Spielman \& Teng(2004)Spielman and
   Teng]{Spielman:2004:SAA:990308.990310}
@@ -99,7 +97,6 @@ Spielman, Daniel~A. and Teng, Shang-Hua.
 \newblock \emph{J. ACM}, 51\penalty0 (3):\penalty0 385--463, May 2004.
 \newblock ISSN 0004-5411.
 \newblock \doi{10.1145/990308.990310}.
-\newblock URL \url{http://doi.acm.org/10.1145/990308.990310}.
 
 \bibitem[Tanenbaum \& Steen(2006)Tanenbaum and
   Steen]{Tanenbaum:2006:DSP:1202502}
