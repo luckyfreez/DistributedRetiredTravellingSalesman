@@ -93,6 +93,9 @@ public class MasterServer {
      * TODO What happens when we have (1) no flight between two cities on same day, or (2) time-out/hanging? Can we fix these?
      */
     public static void checkFlightPrices() {
+        // TODO Sometimes checking flight prices will loop around and skip last part ... no idea what's going on with that.
+        // Does it happen if flight prices can change? Want to change the for loop iteration?
+        System.out.println("Now checking flight prices with flight list: " + flights);
         for (Flight f : flights) {
             Object[] queryResult = checkPrice(f.from, f.to, f.depDate);
             if ((Boolean) queryResult[0]) {
