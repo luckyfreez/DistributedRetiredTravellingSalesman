@@ -285,13 +285,14 @@ any city other than $c$. Notice that by our previous constraints, both Term 1 an
 indicates that two flights on back-to-back days are not logically consistent. We therefore have the following lemma.
 
 \begin{lem}\label{lem:correctness}
-Assuming that we have $n$ cities and $n$ days as input, solving the binary integer programming problem using the previous constraints will return a
+Assuming that we have $n$ cities and $n$ or $n+1$ days as input, solving the binary integer programming problem using the previous constraints will return a
 valid, logically consistent solution.
 \end{lem}
 
-Of course, this doesn't prevent the problem of having more days than flights. We resolve that issue by not using constraints at all. We just run the
-problem and, each time a candidate solution is proposed, check its complete vector for logical consistency. Appendix~\ref{app:flight_logic} describes
-our handling of flight logic in more detail.
+The correctness of $n$ days in the flight schedule will force correctness in the case of $n+1$ days, but beyond that it is possible to get a logically
+invalid flight scheduling. We resolve that issue by not using constraints at all. We just run the problem and, each time a candidate solution is
+proposed, check its complete vector for logical consistency.  Thus, it is a ``last-minute'' check that must be passed before a complete assignment to
+the variables is accepted.
 
 \subsection{Using Balas' Additive Algorithm}\label{sec:balas}
 
@@ -541,7 +542,6 @@ Outline of Supplementary Material:
 
 \begin{itemize}[noitemsep]
     \item why solutions to linear and integer programming can differ enormously
-    \item theoretical constraints we would need to prevent flight logic errors
     \item a detailed discussion of our implementation of Balas' Additive Algorithm
     \item how we check and parse the user input in our code
     \item additional experiments and examples that could not fit in the text
@@ -586,11 +586,6 @@ Another enlightening example of the difference between integer and linear progra
 demonstrates how the optimal linear and integral solutions can be arbitrarily far away from each other, in terms of distance in the plane or total
 cost.
 
-\section{Adding Constraints to Prevent Flight Logic Errors}\label{app:flight_logic}
-
-Here, we should describe the constraints that we added in for flight logic. I only added in one layer of constraints.
-
-{\bf TODO}
 
 \section{Balas' Additive Algorithm}\label{app:balas}
 
