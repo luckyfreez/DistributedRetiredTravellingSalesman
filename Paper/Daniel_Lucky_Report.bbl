@@ -1,4 +1,4 @@
-\begin{thebibliography}{15}
+\begin{thebibliography}{17}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -27,6 +27,17 @@ Blaze, Matt, Feigenbaum, Joan, Ioannidis, John, and Keromytis, Angelos~D.
 \newblock chapter The Role of Trust Management in Distributed Systems Security,
   pp.\  185--210. Springer-Verlag, London, UK, UK, 1999.
 \newblock ISBN 3-540-66130-1.
+
+\bibitem[Bradley et~al.(1977)Bradley, Hax, and Magnanti]{bradley1977applied}
+Bradley, S.P., Hax, A.C., and Magnanti, T.L.
+\newblock \emph{Applied mathematical programming}.
+\newblock Addison-Wesley Pub. Co., 1977.
+\newblock ISBN 9780201004649.
+
+\bibitem[Chinnek(2014)]{carleton}
+Chinnek, John.
+\newblock Practical optimization: A gentle introduction.
+\newblock Online Textbook, 2014.
 
 \bibitem[Christofides(1976)]{Chr76}
 Christofides, Nicos.

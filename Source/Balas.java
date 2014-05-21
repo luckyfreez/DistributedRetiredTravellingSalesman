@@ -164,6 +164,7 @@ public class Balas {
 
     /**
      * Helper method for Balas's alg to check for pruning. Returns FALSE if we CANNOT prune, TRUE if we CAN prune.
+     * TODO We need to check if this is working.
      */
     public static boolean check_pruning(List<Integer> path, int[] costs, int[][] constraints) {
         int num_variables = costs.length;
@@ -377,6 +378,29 @@ public class Balas {
 
                     // For each of the two cases, first check if it's feasible. Then check if it's better than best cost.
 
+                    // NEW! Let's try reversing the order of constraints...
+
+                    // Case/Path 2
+                    if (cost_child2 != -1) {
+                        // Must also check min_days_btwn_flights, if the logic doesn't work, we don't continue.
+                        if (cost_child2 < best_cost && min_days_btwn_flights_logic(path2, variable_ordering)) {
+                            // Now check if this candidate works
+                            if (check_flight_logic(path2, variable_ordering)) {
+                                System.out.println("Case 2 update, node #" + expanded_nodes + ", new cost: " + cost_child2 + ", new path: " + current_path2);
+                                best_cost = cost_child2;
+                                best_path = current_path2;
+                            } else {
+                                Node child = new Node(node, path2); 
+                                st.push(child);
+                            }
+                        }
+                    } else {
+                        if (!check_pruning(path2, costs, constraints)) {
+                            Node child = new Node(node, path2);
+                            st.push(child);
+                        }
+                    }
+
                     // Case/Path 1
                     if (cost_child1 != -1) {
                         // Feasible, but only check if cost is better than the best one because we're assuming best-case costs
@@ -401,27 +425,7 @@ public class Balas {
                         }
                     }
 
-                    // Case/Path 2
-                    if (cost_child2 != -1) {
-                        // Must also check min_days_btwn_flights, if the logic doesn't work, we don't continue.
-                        if (cost_child2 < best_cost && min_days_btwn_flights_logic(path2, variable_ordering)) {
-                            // Now check if this candidate works
-                            if (check_flight_logic(path2, variable_ordering)) {
-                                System.out.println("Case 2 update, node #" + expanded_nodes + ", new cost: " + cost_child2 + ", new path: " + current_path2);
-                                best_cost = cost_child2;
-                                best_path = current_path2;
-                            } else {
-                                Node child = new Node(node, path2); 
-                                st.push(child);
-                            }
-                        }
-                    } else {
-                        if (!check_pruning(path2, costs, constraints)) {
-                            Node child = new Node(node, path2);
-                            st.push(child);
-                        }
-                    }
-                }
+                } // End of both cases
             }
         }
         System.out.println("Total nodes analyzed: " + expanded_nodes);
