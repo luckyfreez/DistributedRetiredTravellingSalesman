@@ -24,7 +24,7 @@ public class Flight implements Comparable<Flight> {
     }
 
     public String toString() {
-        return from + "->" + to + " on " + depDate + ", " + (price != -1 ? "$" + price : "price not known");
+        return from + "->" + to + " on " + depDate + ", " + (price != -1 ? "$" + price : "price unknown");
     }
 
     // Order flights based on the departure date. Greater than means it comes later in the ordering.

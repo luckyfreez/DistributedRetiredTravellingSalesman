@@ -17,44 +17,44 @@ public class CrawlerServer {
 	//private static boolean idle;
 
     // Starts the server.
-	public static void startServer(int port) {
-		try {
-			PropertyHandlerMapping phm = new PropertyHandlerMapping();
-			XmlRpcServer xmlRpcServer;
-			WebServer server = new WebServer(port);
-			xmlRpcServer = server.getXmlRpcServer();
-			phm.addHandler("crawlerServer", CrawlerServer.class);
-			xmlRpcServer.setHandlerMapping(phm);
-			server.start();
-			crawler = new ITACrawler();
-		} catch (Exception exception) { System.err.println("CrawlerServer: " + exception); }
-	}
-
-
-  public Object[] checkPrice(String from, String to, String depDate) {
-  	return crawler.checkPrice(from, to, depDate);
-	}
-
-	/*
-	public static boolean isIdle() {
-		return idle;
-	}
-	*/
-
-	public static void main(String[] args) {
-
-		int port = 8001;
-		if (args.length == 1) {
-      port = Integer.parseInt(args[0]);
+    public static void startServer(int port) {
+        try {
+            PropertyHandlerMapping phm = new PropertyHandlerMapping();
+            XmlRpcServer xmlRpcServer;
+            WebServer server = new WebServer(port);
+            xmlRpcServer = server.getXmlRpcServer();
+            phm.addHandler("crawlerServer", CrawlerServer.class);
+            xmlRpcServer.setHandlerMapping(phm);
+            server.start();
+            crawler = new ITACrawler();
+        } catch (Exception exception) { System.err.println("CrawlerServer: " + exception); }
     }
- 		CrawlerServer.startServer(port);
-		//CrawlerServer s = new CrawlerServer();
-		//System.out.println(s.checkPrice("BOS", "NYC", "05/29/2014")[0]);
-		/*
-		try {
-  		System.out.println("Price = " + crawler.checkPrice("BOS", "NYC", "05/29/2014")[0]);
-  	} catch (Exception e) {
-  	}
-  	*/
-	}
+
+
+    public Object[] checkPrice(String from, String to, String depDate) {
+        return crawler.checkPrice(from, to, depDate);
+    }
+
+    /*
+       public static boolean isIdle() {
+       return idle;
+       }
+     */
+
+    public static void main(String[] args) {
+
+        int port = 8001;
+        if (args.length == 1) {
+            port = Integer.parseInt(args[0]);
+        }
+        CrawlerServer.startServer(port);
+        //CrawlerServer s = new CrawlerServer();
+        //System.out.println(s.checkPrice("BOS", "NYC", "05/29/2014")[0]);
+        /*
+           try {
+           System.out.println("Price = " + crawler.checkPrice("BOS", "NYC", "05/29/2014")[0]);
+           } catch (Exception e) {
+           }
+         */
+    }
 }

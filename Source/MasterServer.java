@@ -21,15 +21,13 @@ import org.apache.xmlrpc.XmlRpcException;
 
 public class MasterServer {
 
-    public static ArrayList<Flight> flights = new ArrayList<Flight>();  // All possible flights 
-    public static HashSet<String> idleSlaveServers = new HashSet<String>();
-    public static String crawlerServerAddr = "";                       // Used to connect to crawler
+    public static ArrayList<Flight> flights = new ArrayList<Flight>();      // All possible flights 
+    public static HashSet<String> idleSlaveServers = new HashSet<String>(); // For the multiple crawler servers
+    public static String crawlerServerAddr = "";                            // Used to connect to crawler
 
-    // Just gets the crawlerServer hostname and starts the master.
+    // Just gets the crawlerServer hostname and starts the master. NEW: now we have multiple servers!
     public static void main(String[] args) {
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8001");
-        idleSlaveServers.add(crawlerServerAddr);
-        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
         idleSlaveServers.add(crawlerServerAddr);
         //crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
         //idleSlaveServers.add(crawlerServerAddr);
@@ -70,6 +68,9 @@ public class MasterServer {
     }
 
 
+    /**
+     * TODO: Add comments here!
+     */
     private static class CheckPriceThread implements Runnable {
         private Flight flight;
         private String crawlerServerAddr;
@@ -101,45 +102,53 @@ public class MasterServer {
                     flight.from + " -> " + flight.to + " at " + flight.depDate + "! Exception is " + e);
             }
 
-
             if ((Boolean) result[0]) {
                 flight.price = Integer.parseInt((String) result[1]);
             } else {
-                flight.price = 100000; // Need to get some value here just in case.
+                // TODO Need to get some value here just in case, improve code to equip price failures
+                flight.price = 100000; 
             }
 
-            System.out.println("finish checking the flight price, the price is " + flight.price);
+            System.out.println("Finished checking. Flight information: " + flight.toString());
             idleSlaveServers.add(crawlerServerAddr);
-            System.out.println("idleSlaveServers:" + idleSlaveServers.size());
             return;
         }
     }
 
 
     /**
-     * This method checks all the flight prices.
-     * TODO Change this so that it can distribute across machines.
-     * TODO What happens when we have (1) no flight between two cities on same day, or (2) time-out/hanging? Can we fix these?
+     * This method checks all the flight prices. TODO Change this so that it can distribute across machines.
+     * TODO What happens when we have (1) no flight between two cities on same day, or (2) time-out/hanging? 
+     * TODO Sometimes checking flight prices will loop around and skip last part ... no idea what's going on.
      */
     public static void checkFlightPrices() {
-        //Flight fPrevious = new Flight("", "", "");
-        // TODO Sometimes checking flight prices will loop around and skip last part ... no idea what's going on with that.
+
+        // Can we keep track of the number of idle servers?
+        int numSlaveServers = idleSlaveServers.size();
+        System.out.println("Checking flight prices with " + numSlaveServers + " slave servers.");
+
         for (Flight f : flights) {
-
-            System.out.println("idle server left" + idleSlaveServers.size());
             // Wait till we find an idle slave server.
-            while (idleSlaveServers.isEmpty()) { try {Thread.sleep(100);} catch (Exception e) {} }// System.out.println("In loop, last flight: " + fPrevious);}
-
+            // System.out.println("In loop, last flight: " + fPrevious);}
+            while (idleSlaveServers.isEmpty()) { try {Thread.sleep(100);} catch (Exception e) {} }
             String crawlerServerAddr = idleSlaveServers.iterator().next();
             idleSlaveServers.remove(crawlerServerAddr);
             Runnable checkPrice = new CheckPriceThread(f, crawlerServerAddr, idleSlaveServers);
             new Thread(checkPrice).start();
-            System.out.println("new process is running. idle server left" + idleSlaveServers.size());
-
-            System.out.println(f);
-            //fPrevious = f;
         }
-        // Wait till everything ends.
+
+        System.out.println("Now done iterating through flights. Current idle slave servers: " + idleSlaveServers.size());
+        int previous = idleSlaveServers.size();
+        // Important! We can go through the flights but the last one in each thread will be -1
+        // So here we'll just do nothing and wait for everything to finish.
+        while (idleSlaveServers.size() != numSlaveServers) {
+            try {
+                Thread.sleep(1000);
+            } catch(InterruptedException ie) {}
+            System.out.println("Num idle: " + idleSlaveServers.size());
+                }
+        System.out.println("After while loop with " + idleSlaveServers.size() + " idle servers.");
+        return;
     }
 
 
@@ -175,7 +184,7 @@ public class MasterServer {
 
 
     /**
-     * This converts the flight information into the int[][] of constraints. A VERY important method!
+     * This converts the flight information into the int[][] of constraints. A VERY, VERY important method!
      * (1) With n cities and m days, we have n+n+m constraints regarding one flight a day and entering/leaving cities
      * (2) Prevent disjoint cycles. Use power set to generate all possible groupings, then choose those with at least 2 in each
      * (3) Flight logic: we only check any pairs of flights on consecutive days here. (Defer rest to other parts of code.)
