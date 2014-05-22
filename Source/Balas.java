@@ -65,6 +65,7 @@ public class Balas {
     /**
      * Transforms the problem so that it satisfies the requirements for Balas' Algorithm
      * All objective functions are guaranteed to be positive by construction, so no worries
+     * Note: if equation[equation.length-2] = 0, it's LESS THAN. And if 1, it's GREATER THAN
      */
     public static void make_canonical(int[][] constraints) {
         for (int[] equation : constraints) {
@@ -361,18 +362,23 @@ public class Balas {
             best_cost += i;
         }
         int num_variables = costs.length;
-        int expanded_nodes = 0;
 
-        // Now get the sets, list, and stack started and create the root node. Also keep some statistics in handy for printing later.
-        int look_aheads = 0;
-        int pruning_checks = 0;
+        // Now get the sets, list, and stack started and create the root node. 
         Set<Node> discovered = new HashSet<Node>();
         List<Integer> current_path = new ArrayList<Integer>();
         Node root = new Node(null, current_path);
         Stack<Node> st = new Stack<Node>();
         st.push(root);
 
-        // The iterative version of the DFS. Note that we occasionally print out the path to reassure the user that it's running.
+        // Also keep some statistics in handy for printing later.
+        int expanded_nodes = 0;
+        int look_aheads = 0;
+        int pruning_checks = 0;
+        int successful_pruning = 0;
+        int logic_errors = 0;
+        int min_days_errors = 0;
+
+        // The iterative version of the DFS. We keep track of statistics and can print out paths to users if needed.
         while (!st.empty()) {
             Node node = st.pop();
 
@@ -380,9 +386,6 @@ public class Balas {
 
                 discovered.add(node);
                 expanded_nodes++; 
-                if (expanded_nodes % 1000 == 0) {
-                    System.out.println("Node #" + expanded_nodes + "; Path: " + node.path);
-                }
 
                 if (node.path.size() < num_variables) {
 
@@ -399,11 +402,13 @@ public class Balas {
                     if (node.path.size() < num_variables - 1) {
                         current_path2.add(1);
                         current_path3.add(0);
+                        pruning_checks++;
                         if (!check_pruning(current_path3, costs, constraints)) {
                             Node child = new Node(node, current_path3); 
                             st.push(child);
+                        } else {
+                            successful_pruning++;
                         }
-                        pruning_checks++;
                     }
 
                     // Only things we'll look ahead with are the first two paths, NOT the third because we know it's already infeasible
@@ -418,15 +423,20 @@ public class Balas {
                      * If solution is not feasible right now, we check for pruning. If we can't, then must continue with it in DFS.
                      */
                     if (cost_child2 != -1) {
-                        if (cost_child2 < best_cost && min_days_btwn_flights_logic(current_path2, variable_ordering)) {
-                            if (check_flight_logic(current_path2, variable_ordering)) {
-                                List<Integer> complete = complete_path(current_path2);
-                                System.out.println("Case 2 update, node #" + expanded_nodes + ", new cost: " + cost_child2 + ", new path: " + complete);
-                                best_cost = cost_child2;
-                                best_path = complete;
+                        if (cost_child2 < best_cost) {
+                            if (min_days_btwn_flights_logic(current_path2, variable_ordering)) {
+                                if (check_flight_logic(current_path2, variable_ordering)) {
+                                    List<Integer> complete = complete_path(current_path2);
+                                    System.out.println("Case 2 Update: Node #" + expanded_nodes + ", New cost: " + cost_child2 + ", \nNew path: " + complete);
+                                    best_cost = cost_child2;
+                                    best_path = complete;
+                                } else {
+                                    logic_errors++;
+                                    Node child = new Node(node, current_path2); 
+                                    st.push(child);
+                                }
                             } else {
-                                Node child = new Node(node, current_path2); 
-                                st.push(child);
+                                min_days_errors++;
                             }
                         }
                     } else {
@@ -434,20 +444,27 @@ public class Balas {
                         if (!check_pruning(current_path2, costs, constraints)) {
                             Node child = new Node(node, current_path2);
                             st.push(child);
+                        } else {
+                            successful_pruning++;
                         }
                     }
 
                     // Now we're going to check the case when we added in a "1" at the end. This is similar to the other check above.
                     if (cost_child1 != -1) {
-                        if (cost_child1 < best_cost && min_days_btwn_flights_logic(current_path1, variable_ordering)) {
-                            if (check_flight_logic(current_path1, variable_ordering)) {
-                                List<Integer> complete = complete_path(current_path1);
-                                System.out.println("Case 1 update, node #" + expanded_nodes + ", new cost: " + cost_child1 + ", new path: " + complete);
-                                best_cost = cost_child1;
-                                best_path = complete;
+                        if (cost_child1 < best_cost) {
+                            if (min_days_btwn_flights_logic(current_path1, variable_ordering)) {
+                                if (check_flight_logic(current_path1, variable_ordering)) {
+                                    List<Integer> complete = complete_path(current_path1);
+                                    System.out.println("Case 1 Update: Node #" + expanded_nodes + ", New cost: " + cost_child1 + ", \nNew path: " + complete);
+                                    best_cost = cost_child1;
+                                    best_path = complete;
+                                } else {
+                                    logic_errors++;
+                                    Node child = new Node(node, current_path1); 
+                                    st.push(child);
+                                }
                             } else {
-                                Node child = new Node(node, current_path1); 
-                                st.push(child);
+                                min_days_errors++;
                             }
                         }
                     } else {
@@ -455,14 +472,17 @@ public class Balas {
                         if (!check_pruning(current_path1, costs, constraints)) {
                             Node child = new Node(node, current_path1); 
                             st.push(child);
+                        } else {
+                            successful_pruning++;
                         }
                     }
 
                 } 
             }
         }
-        System.out.println("Total nodes analyzed: " + expanded_nodes);
-        System.out.println("Total look aheads: " + look_aheads + "; total pruning checks: " + pruning_checks);
+        System.out.println("Total nodes expanded: " + expanded_nodes + ", total cost/feasibility look-aheads: " + look_aheads);
+        System.out.println("Total flight logic errors caught: " + logic_errors + ", total min-days errors caught: " + min_days_errors);
+        System.out.println("Total pruning checks: " + pruning_checks + ", total successful: " + successful_pruning);
         System.out.println("Best solution: " + best_path + ", with cost " + best_cost);
         return best_path;
     }
@@ -769,8 +789,6 @@ public class Balas {
         System.out.println("Best solution: " + best_path);
         return best_path;
     }
-
-
 
 
 

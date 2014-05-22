@@ -630,10 +630,11 @@ But a word of caution --- if there are four cities and twenty days to travel, th
 means listing all solutions would mean we have $2^{120}$ leaf nodes. This is clearly impractical, and the hope is that Balas' algorithm can avoid
 searching the full space of solutions by using look-ahead and pruning techniques, which we now describe.
 
-\subsection{Cost Look-Ahead}
+\subsection{Cost and Feasibility Look-Ahead}\label{app:balas_lookahead}
 
 Suppose we are at a given node of the DFS tree with path $[x_1, x_2, \ldots, x_j, \ldots]$, so the first $j$ variables are assigned and the remaining
-$n-j$ variables are unknown. We can consider two cases for the value of $x_j$:
+$n-j$ variables are unknown. It is possible to ``look ahead'' in the tree to see if best-case (i.e., lowest-cost) scenarios are feasible. We can
+consider two cases for the value of $x_j$:
 
 \begin{itemize}[noitemsep]
     \item Suppose $x_j = 1$. Then we need to check if the current path so far can lead to a best-cost solution. If we check the constraints, and find
@@ -652,7 +653,6 @@ $n-j$ variables are unknown. We can consider two cases for the value of $x_j$:
 \end{itemize}
 
 As we will soon show, it is also important to be able to prune away impossible paths so that we do not need to do this ``cost look-ahead'' every time.
-% TODO Check my own implementation of DFS to see if it matches this...
 
 \subsection{Pruning}
 
@@ -667,18 +667,642 @@ one if otherwise. For example, if we had the assignment $[x_1=1, x_2=0, x_3, x_4
 2x_3 -3x_4 \ge 4$, then knowing the first two values mean this constraint is immediately $1 + 2x_3 - 3x_4$. Set $x_3=1$ and $x_4=0$ and we get $1+2
 \not \ge 4$, so this can be pruned.
 
+\subsection{Our Implementation}
 
+Our implementation of the algorithm runs an iterative version of depth-first search, where each node contains information about its current path from
+the root to itself. We debated between depth-first search versus best-first search, but decided to do the former since best-first search would give
+priority early to paths that start with almost all zeros (and we want paths that start with a few ones and end with lots of zeros).
 
+An interesting detail about our code is that we actually view each node as having three successors in the tree. Given a current path $\mathcal{X} =
+[x_1, \ldots, x_j]$, we consider the three paths that result from appending $[1],[0,1],$ or $[0,0]$ to $\mathcal{X}$. We only run the cost look-ahead
+procedure (described in Appendix~\ref{app:balas_lookahead}) on the first two, because adding in a bunch of zeros to an infeasible assignment
+$\mathcal{X}$ cannot make it feasible. Remember, the whole reason why we are still expanding $\mathcal{X}$ is because best-case extensions of it
+(i.e., adding all zeroes, possibly after adding in a one to start) is not feasible! Our original implementation simply had two children, which were
+formed from appending $[0]$ and $[1]$. This was inefficient as it caused us to repeat certain trials. After making each node expand three children, we
+noticed that the depth-first search was expanding a little over \emph{half} as many nodes as before! Any small improvement we can make to this
+algorithm is imperative, given its general exponential-time complexity with respect to the number of cities and days.
 
 \section{Checking User Input}\label{app:input_check}
 
 We should describe the full list of checks we make, and see what might go wrong...
-
-\section{Additional Experiments and Examples}\label{app:additional_experiments_and_examples}
-
 {\bf TODO}
 
-% Daniel's stuff for experimentation. Do not include these in the final document.
+\section{Experiments on a Single Machine}\label{app:single_machine_experiment}
+
+In this section, we describe an in-depth demonstration of our system in action on one machine. The goal is to see how varying the parameters causes
+the solution to change (if it does), and to see how factors such as pruning and look-aheads affect the speed of our depth-first search. Be aware,
+though, that there is always a risk of experimenting with real flight data, because prices can change at any time\footnote{In fact, a week before
+finishing this paper, we ran an experiment in which the cost of one flight decreased by \$11 in between our trials, which took some time to figure
+out.}. To mitigate this risk, we run these experiments back-to-back.
+
+Specifically, we run our flight scheduler code with the following requests:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/03/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/04/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/10/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/11/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 1}
+\end{itemize}
+
+We record the following quantities:
+
+\begin{itemize}[noitemsep]
+    \item The time it takes to search for the flight prices\footnote{As we mention in Section~\ref{sec:limitations}, sometimes our web crawler gets
+    stick on Matrix Airfare Search. We resolve this by simply leaving the Matrix Airfare Search webpage open at all times (i.e., we do not minimize it
+    or switch views to a different window).}
+    \item The time it takes to complete Balas' Additive Algorithm
+    \item The number of nodes expanded in the depth-first search (DFS) for Balas' algorithm
+    \item The number of pruning checks Balas' algorithm makes, as well as the number of successes
+    \item The number of times Balas' algorithm ``looks ahead'' by filling out a path and checking for feasibility and cost.
+    \item The number of flight logic errors due to either violating flight ordering, or violating the minimum number of days between flights
+    requirement.
+\end{itemize}
+
+These experiments as a whole therefore test the effect of adding more days, adding more cities, and adding in the extra constraint of the minimum
+number of days between cities. The goal is to gain insights about the feasibility of using our flight scheduler. Notice that the time it takes for the
+entire system to complete a request is almost entirely dependent on the flight lookup and Balas' algorithm.
+
+
+\subsection{The First Flight Request}\label{app:first_flight_request}
+
+In this section (and some subsequent ones) we print out part of the Master Server's output\footnote{This output could, theoretically, be part of the
+front-end that the user actually sees, but we decided that this is too much of an information overload for them, so we do not bother to do that.}.  We
+describe output for this first flight request in detail for explanatory purposes, and then we are more concise after this. Here, the input is:
+
+\begin{verbatim}
+06/01/2014 06/03/2014 ATL ORD LAX
+\end{verbatim}
+The output is:
+
+\footnotesize
+\begin{verbatim}
+Starting the problem! Here's our input:
+All dates: [06/01/2014, 06/02/2014, 06/03/2014]
+All cities: [ATL, ORD, LAX]
+
+Now checking flight prices...
+ATL->ORD on 06/01/2014, $315
+ATL->LAX on 06/01/2014, $261
+ORD->ATL on 06/01/2014, $315
+ORD->LAX on 06/01/2014, $253
+LAX->ATL on 06/01/2014, $278
+LAX->ORD on 06/01/2014, $204
+ATL->ORD on 06/02/2014, $210
+ATL->LAX on 06/02/2014, $201
+ORD->ATL on 06/02/2014, $210
+ORD->LAX on 06/02/2014, $253
+LAX->ATL on 06/02/2014, $201
+LAX->ORD on 06/02/2014, $174
+ATL->ORD on 06/03/2014, $190
+ATL->LAX on 06/03/2014, $172
+ORD->ATL on 06/03/2014, $190
+ORD->LAX on 06/03/2014, $154
+LAX->ATL on 06/03/2014, $171
+LAX->ORD on 06/03/2014, $154
+
+Now converting to an integer programming problem...
+Here is our power set of cities with at least 2 and 2 in the subsets: []
+Here are the problem inputs:
+
+The costs: [315, 261, 315, 253, 278, 204, 210, 201, 210, 253, 201,
+174, 190, 172, 190, 154, 171, 154], and the 15 constraints:
+
+[1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1]
+[0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1]
+[1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]
+[0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1]
+[1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1]
+[0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1]
+[0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1]
+[0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1]
+[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1]
+[0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1]
+
+Now calling Balas' algorithm...
+
+Now doing the depth first search...
+
+Case 2 Update: Node #22, New cost: 642, 
+New path: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0]
+Case 1 Update: Node #87, New cost: 586, 
+New path: [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+
+Total nodes expanded: 174, total cost/feasibility look-aheads: 348
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 513, total successful: 340
+Best solution: [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], with cost 586
+
+Original problem from client was 06/01/2014 06/04/2014 ATL ORD LAX
+Flights ordered by cost:
+[ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210]
+Flights ordered by date:
+[LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210, ATL->LAX on 06/03/2014, $172]
+Flight check time in hours:minutes:milliseconds -- 0:2:31.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Let us discuss this output in more detail. The first part that prints out the date range and cities is essentially to confirm that the user's input is
+well-formed. Next, the Master Server prints the flight tickets for each flight as it gets them by querying the crawler server. (For small enough
+inputs, looking at these prices can serve as a useful sanity check to make sure that our code actually outputs the correct solution.) Next up, the
+Master Server prints something about a ``power set.'' This is to solve the disjoint cycle problem mentioned in Section~\ref{sec:disjoint_cycles}, and
+lists all the ways to partition the cities into groups. With three cities, this is a pointless exercise because every possible subdivision of three
+into two groups results in one grouping having either zero or one city, which is already covered by other constraints and thus is not problematic.
+
+Next, the Master Server prints out the costs and the constraints. The costs are straightforward and can be directly verified by the Master Server's
+printing of the flight information as they get discovered. The constraints are the interesting part. \emph{Most} of the numbers there correspond to
+coefficients. The exception are the last two numbers in each list. The penultimate number in each list follows a code where a zero indicates
+\emph{less than} and a one indicates \emph{greater than}\footnote{Technically, it might have been better to assign a minus-one to mean less than,
+since then we could just multiply everything by $-1$ to get a greater than. As it is, we do the multiplication by $-1$, but have to explicitly set the
+penultimate element of such a list to be 1.}. Finally, the last element in each list is the bound.
+
+With the constraints, we can then call Balas' algorithm. Periodically, the algorithm will find a working solution via ``look-aheads'' and those are
+the ``updates'' that are being printed out, along with the corresponding node, the cost, and the (complete) path. Cases 1 and 2 refer to when an
+update is found via a look-ahead that corresponds to appending a $[1]$ or a $[0,1]$ to the node's list, respectively. In this example, there was a
+valid flight route found to have cost \$642, but that was later bested by the \$586 solution.
+
+Finally, once the algorithm is finished, the server prints some concluding remarks and statistics. Most importantly, it prints out the best flight
+route, and its total cost. In the case of a simple three city, three day input, the best flight route costs \$586 and goes from Los Angeles to Chicago
+to Atlanta to Los Angeles. The total flight checking time took two minutes and thirty one seconds, and the run time of Balas' algorithm is negligible.
+The total number of nodes expanded is 174, which is a substantial savings over the $2^{18}$ complete possible enumerations of the flight vector. As
+expected, there are no flight logic errors caught (because those require more days than flights) and there are no ``minimum day'' errors because we
+did not specify any.
+
+\subsection{Additional Three-City, No Minimum Day Queries}
+
+This section describes additional three-city outputs without any required minimum number of days between flights. We will be more concise than in
+Section~\ref{app:first_flight_request} and include just the information we deem essential. We also briefly comment on the output of each experiment.
+Recall that with the original request in Section~\ref{app:first_flight_request}, the best flight cost \$586 and corresponded to the route:
+
+\footnotesize
+\begin{verbatim}
+[LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210, ATL->LAX on 06/03/2014, $172] 
+\end{verbatim}
+\normalsize
+
+So what happens when we add in an extra day? The following input:
+
+\begin{verbatim}
+06/01/2014 06/04/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #26, New cost: 814, 
+New path: [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+Case 1 Update: Node #26, New cost: 777, 
+New path: [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0]
+Case 1 Update: Node #43, New cost: 761, 
+New path: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+Case 2 Update: Node #47, New cost: 721, 
+New path: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #51, New cost: 517, 
+New path: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #187, New cost: 505, 
+New path: [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Total nodes expanded: 717, total cost/feasibility look-aheads: 1434
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 2086, total successful: 1370
+Best solution: [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 505
+
+Original problem from client was 06/01/2014 06/04/2014 ATL ORD LAX
+Flights ordered by cost:
+[ORD->ATL on 06/04/2014, $150, LAX->ORD on 06/03/2014, $154, ATL->LAX on 06/02/2014, $201]
+Flights ordered by date:
+[ATL->LAX on 06/02/2014, $201, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/04/2014, $150]
+Flight check time in hours:minutes:milliseconds -- 0:4:1.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Interesting! Now the best flight route is in a completely different order on different days (June 2, 3, and 4 compared to June 1, 2, and 3), and costs
+\$505. This is a good sanity check, because unless our flight prices somehow changed between experiments, our new best price should clearly not be
+more expensive than \$586. So the current flight route to beat is:
+
+\footnotesize
+\begin{verbatim}
+[ATL->LAX on 06/02/2014, $201, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/04/2014, $150]
+\end{verbatim}
+\normalsize
+
+One more thing: the flight lookup time now takes just a second over four minutes, but Balas' algorithm \emph{still} runs in less than a second. Let's
+hope that is still the case when we add another day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/05/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #32, New cost: 923, 
+New path: [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
+Case 2 Update: Node #49, New cost: 654, 
+New path: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #152, New cost: 650, 
+New path: [1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #160, New cost: 458, 
+New path: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Total nodes expanded: 2845, total cost/feasibility look-aheads: 5690
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 8141, total successful: 5297
+Best solution:
+[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 458
+
+Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:4:23.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+We get \emph{another} improvement! This time, the cost went down to \$458, from a route that has flights on the third, fourth, and fifth.
+(Unsurprisingly, any route that improves on a previous one \emph{must} have one flight on the new day we just added.) Notice again that the runtime of
+the flight lookup is around four minutes, while Balas' algorithm takes negligible time.
+
+Let us add a day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/06/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output (note: we remove the full paths since they start to get long):
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #20, New cost: 1052, 
+Case 2 Update: Node #57, New cost: 827, 
+Case 2 Update: Node #137, New cost: 635, 
+Case 2 Update: Node #425, New cost: 622, 
+Case 2 Update: Node #447, New cost: 458, 
+Total nodes expanded: 10336, total cost/feasibility look-aheads: 20672
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 29293, total successful: 18958
+Best solution:
+[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+with cost 458
+
+Original problem from client was 06/01/2014 06/06/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:5:14.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Sadly, the streak of improvement was not to be. Despite adding in June 6 as a possible date, the cheapest flight was still the one that spanned June 3
+through June 5. On the positive side, flight checking time (five minutes) is still reasonable, especially for one machine. Balas' algorithm continues
+to be fast, though it is important to note that we're now expanding tens of thousands of nodes (10,336 in this case) and that will start to grow
+exponentially. Some more interesting observations are that (1) we continue to find most new paths by virtue of Case 2, which is not surprising because
+the data is generally sparse and most of the time, ones are preceded by zeros\footnote{If a vector is feasible and has consecutive ones, then there's
+a good chance it came from a Case 1 update.} and that (2) we still do not have any flight logic errors to catch, and that (3) pruning is successful
+for about two-thirds of the time, showing that it is very valuable to do so!
+
+With that aside, let us add in \emph{another} day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/07/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #43, New cost: 1058, 
+Case 2 Update: Node #65, New cost: 789, 
+Case 2 Update: Node #188, New cost: 757, 
+Case 2 Update: Node #245, New cost: 603, 
+Case 2 Update: Node #1914, New cost: 590, 
+Case 1 Update: Node #2390, New cost: 458, 
+Total nodes expanded: 35902, total cost/feasibility look-aheads: 71802
+Total flight logic errors caught: 1, total min-days errors caught: 0
+Total pruning checks: 101007, total successful: 65107
+Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 458
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:6:3.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+We again see no improvement from the \$458 route discovered two cases ago. The number of nodes expanded is now at 35,902, but we can still run Balas'
+algorithm amazingly quickly. We also see our first-ever flight logic error!
+
+As usual, we continue by adding a day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/08/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output:
+
+\scriptsize
+\begin{verbatim}
+Case 1 Update: Node #45, New cost: 1320, 
+Case 1 Update: Node #81, New cost: 1279, 
+Case 1 Update: Node #87, New cost: 1058, 
+Case 2 Update: Node #146, New cost: 789, 
+Case 2 Update: Node #472, New cost: 757, 
+Case 2 Update: Node #594, New cost: 603, 
+Case 2 Update: Node #6098, New cost: 590, 
+Case 1 Update: Node #7105, New cost: 458, 
+Total nodes expanded: 127570, total cost/feasibility look-aheads: 255138
+Total flight logic errors caught: 1, total min-days errors caught: 0
+Total pruning checks: 355251, total successful: 227683
+Best solution:
+[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+with cost 458
+
+Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:6:47.
+DFS search time in hours:minutes:milliseconds -- 0:0:1.
+\end{verbatim}
+\normalsize
+
+There is no change in the cheapest flight route, but of notice is that Balas' algorithm unfortunately takes about a second to run, with 127,570 nodes
+expanded.
+
+The following input (we're now approaching double-digit days...):
+
+\begin{verbatim}
+06/01/2014 06/09/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output:
+
+\scriptsize
+\begin{verbatim}
+Case 1 Update: Node #27, New cost: 1494, 
+Case 2 Update: Node #37, New cost: 1241, 
+Case 2 Update: Node #265, New cost: 1067, 
+Case 1 Update: Node #524, New cost: 1058, 
+Case 1 Update: Node #769, New cost: 789, 
+Case 2 Update: Node #1996, New cost: 757, 
+Case 2 Update: Node #2348, New cost: 603, 
+Case 2 Update: Node #22578, New cost: 590, 
+Case 1 Update: Node #26436, New cost: 458, 
+Total nodes expanded: 460872, total cost/feasibility look-aheads: 921722
+Total flight logic errors caught: 20, total min-days errors caught: 0
+Total pruning checks: 1280957, total successful: 820106
+Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 458
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:7:36.
+DFS search time in hours:minutes:milliseconds -- 0:0:8.
+\end{verbatim}
+\normalsize
+
+Unfortunately, we get no improvement and Balas' algorithm now takes eight seconds to complete. (Despite our attempts at efficiency, the algorithm
+\emph{is} exponential.) We now test on a ten-day range with three cities. The input:
+
+\begin{verbatim}
+06/01/2014 06/10/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #30, New cost: 1633, 
+Case 2 Update: Node #41, New cost: 1380, 
+Case 2 Update: Node #171, New cost: 1206, 
+Case 1 Update: Node #408, New cost: 1132, 
+Case 2 Update: Node #752, New cost: 1052, 
+Case 1 Update: Node #1616, New cost: 946, 
+Case 1 Update: Node #5338, New cost: 871, 
+Case 1 Update: Node #7480, New cost: 728, 
+Case 1 Update: Node #13964, New cost: 603, 
+Case 1 Update: Node #37300, New cost: 597, 
+Case 2 Update: Node #58474, New cost: 580, 
+Case 2 Update: Node #76216, New cost: 447, 
+Total nodes expanded: 1472853, total cost/feasibility look-aheads: 2945504
+Total flight logic errors caught: 164, total min-days errors caught: 0
+Total pruning checks: 4076472, total successful: 2603784
+Best solution:
+[1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 447
+
+Original problem from client was 06/01/2014 06/10/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/10/2014, $140, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/10/2014, $140]
+Flight check time in hours:minutes:milliseconds -- 0:8:45.
+DFS search time in hours:minutes:milliseconds -- 0:0:32.
+\end{verbatim}
+\normalsize
+
+\emph{Yes!} We brought the flight down from \$458 to \$447 with a route that takes us to Los Angeles on June 3, to Chicago on June 4, and then has a
+layover until it sends us back to Atlanta on June 10. The key here was that extra flight price of \$140. Balas' algorithm goes from needing 8 seconds
+to needing 32 seconds as we now have to expand almost half a million nodes. We are starting to catch a good number of flight logic errors (164).
+
+Let us add in one more day. The following eleven-day request:
+
+\begin{verbatim}
+06/01/2014 06/11/2014 ATL ORD LAX
+\end{verbatim}
+
+Has output:
+
+\scriptsize
+\begin{verbatim}
+Case 1 Update: Node #34, New cost: 1768, 
+Case 1 Update: Node #43, New cost: 1515, 
+Case 1 Update: Node #169, New cost: 1341, 
+Case 2 Update: Node #398, New cost: 1267, 
+Case 1 Update: Node #718, New cost: 1187, 
+Case 2 Update: Node #1624, New cost: 1081, 
+Case 1 Update: Node #5155, New cost: 1006, 
+Case 2 Update: Node #7416, New cost: 924, 
+Case 1 Update: Node #8646, New cost: 892, 
+Case 2 Update: Node #9058, New cost: 738, 
+Case 1 Update: Node #22751, New cost: 696, 
+Case 2 Update: Node #57677, New cost: 603, 
+Case 2 Update: Node #105804, New cost: 561, 
+Case 2 Update: Node #213543, New cost: 447, 
+Case 1 Update: Node #1152833, New cost: 446, 
+Total nodes expanded: 4609309, total cost/feasibility look-aheads: 9218304
+Total flight logic errors caught: 210, total min-days errors caught: 0
+Total pruning checks: 12706231, total successful: 8097133
+Best solution:
+[0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 446
+
+Original problem from client was 06/01/2014 06/11/2014 ATL ORD LAX
+Flights ordered by cost: [ORD->LAX on 06/11/2014, $135, ATL->ORD on 06/10/2014, $140, LAX->ATL on 06/03/2014, $171]
+Flights ordered by date: [LAX->ATL on 06/03/2014, $171, ATL->ORD on 06/10/2014, $140, ORD->LAX on 06/11/2014, $135]
+Flight check time in hours:minutes:milliseconds -- 0:9:22.
+DFS search time in hours:minutes:milliseconds -- 0:2:23.
+\end{verbatim}
+\normalsize
+
+A \emph{one dollar} improvement! That extra day really did make a difference.
+
+At this point, we will wrap up these experiments. Balas' Algorithm now takes almost two and a half minutes to run, and soon, it will be the limiting
+factor of our algorithm because the number of nodes to expand will be over ten million for the next iteration. Overall, we are extremely excited with
+these results.  The total runtime of a three-city, eleven day request (so $n(n-1)t = 66$ is still just over half a minute, and this is with using one
+computer!
+
+\subsection{Three-City Requests with Minimum Days}
+
+Here, we describe some three-city requests \emph{with} minimum days enforced! We subdivide this into two parts. The first will show the output of the
+following requests:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 1}
+\end{itemize}
+
+And the second will show the output of requests with more than a day between flights:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 3}
+\end{itemize}
+
+Of note is that our code can detect whether the minimum number of days parameter along with the dates is not sufficient. For instance, the code will
+immediately abort upon receiving this impossible request:
+
+\begin{verbatim}
+06/01/2014 06/04/2014 ATL ORD LAX 1
+\end{verbatim}
+
+For brevity, we will further reduce the amount of output shown for each experiment.
+
+\subsubsection{Three-City Requests with a One Day Gap}
+
+Experiment 1:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 2855, total cost/feasibility look-aheads: 5704
+Total flight logic errors caught: 4, total min-days errors caught: 66
+Total pruning checks: 8159, total successful: 5309
+Best solution:
+[0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+with cost 566
+
+Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX 1
+Flights ordered by date: [ATL->LAX on 06/01/2014, $261, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:4:23.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 2:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 10136, total cost/feasibility look-aheads: 20268
+Total flight logic errors caught: 2, total min-days errors caught: 148
+Total pruning checks: 28703, total successful: 18570
+Best solution: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 511
+
+Original problem from client was 06/01/2014 06/06/2014 ATL ORD LAX 1
+Flights ordered by date: [LAX->ORD on 06/02/2014, $174, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/06/2014, $187]
+Flight check time in hours:minutes:milliseconds -- 0:5:29.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 3:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 38613, total cost/feasibility look-aheads: 77218
+Total flight logic errors caught: 7, total min-days errors caught: 397
+Total pruning checks: 108270, total successful: 69665
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 482
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX 1
+Flights ordered by date: [LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/07/2014, $177]
+Flight check time in hours:minutes:milliseconds -- 0:6:7.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 4:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 125988, total cost/feasibility look-aheads: 251968
+Total flight logic errors caught: 7, total min-days errors caught: 1328
+Total pruning checks: 350909, total successful: 224929
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 482
+
+Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX 1
+Flights ordered by date: [LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/07/2014, $177]
+Flight check time in hours:minutes:milliseconds -- 0:6:41.
+DFS search time in hours:minutes:milliseconds -- 0:0:1.
+\end{verbatim}
+\normalsize
+
+Experiment 5:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 442564, total cost/feasibility look-aheads: 885088
+Total flight logic errors caught: 31, total min-days errors caught: 5026
+Total pruning checks: 1229775, total successful: 787243
+Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 468
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 1
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/07/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flights ordered by date: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/07/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flight check time in hours:minutes:milliseconds -- 0:7:38.
+DFS search time in hours:minutes:milliseconds -- 0:0:8.
+\end{verbatim}
+\normalsize
+
+\subsubsection{Three-City Requests with Two and Three Day Gaps}
+
+
+Experiment 1:
+Experiment 2:
+Experiment 3:
+Experiment 4:
+
+
+\subsection{At Least Four Cities}
+
+Here, we get into more demanding experiments.
 
 \end{document} 
 
