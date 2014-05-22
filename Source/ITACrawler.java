@@ -123,7 +123,7 @@ class ITACrawler {
         result[0] = true;   // Indicates that the search succeeded.
 
         // Get rid of the "$" at the beginning of the priceSpan
-        result[1] = priceSpan.getText().substring(1);
+        result[1] = priceSpan.getText().substring(1).replaceAll(",", "");
         /*
         System.out.println("Cheapest price is " + priceSpan.getText());
         System.out.println("Carrier: " + carrierSpan.getText());
