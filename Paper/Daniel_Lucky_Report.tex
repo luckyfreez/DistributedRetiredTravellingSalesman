@@ -410,22 +410,68 @@ algorithm
 
 \section{Experiments and Results}\label{sec:experiments_results}
 
-We present a brief experimental analysis of our system. Due to space constraints, we only offer high-level descriptions here and defer the full output
-to Appendices.
+We present a brief experimental analysis of our system. Due to space constraints, we only offer high-level descriptions here and defer complete
+results to Appendices.
 
 \subsection{Single-Node Experiments}\label{sec:single_experiment}
 
-of single-node
-experiments to Appendix~\ref{app:single_machine_experiment}.
+We experiment with a variety of inputs on a single node, which means we only use one slave server. Table~\ref{tab:single-node} shows our results on
+twenty inputs. The inputs have \texttt{C}s, \texttt{D}s, and \texttt{G}s, denoting the number of cities, days, and gap days between flights (if any).
+The main concern is the runtime of our whole system. The ``F Time'' and ``B Time'' columns represent the time (minutes:seconds) to run the flight
+checker and Balas' algorithm, respectively. ``V'' represents the set of variables, and the ``Nodes'' column is how many nodes Balas' algorithm
+expanded. These values \emph{must be substantially smaller} than the full list of $2^{|V|}$ possible vector assignments. A more complete treatment of
+these experiments is in Appendix~\ref{app:single_machine_experiment}.
 
-{\bf TODO}
+\begin{table}[t]
+\caption{Statistics of our single-crawler system.}
+\label{tab:single-node}
+\vskip 0.15in
+\begin{center}
+\begin{small}
+\begin{sc}
+\begin{tabular}{lcccc}
+\hline
+\abovespace\belowspace
+Input & $|V|$ & F Time & Nodes & B Time \\
+\hline
+\abovespace
+3C 3D    & 18  & 02:31 & 174     & 0:00  \\
+3C 4D    & 24  & 04:01 & 717     & 0:00  \\
+3C 5D    & 30  & 04:23 & 2845    & 0:00  \\
+3C 6D    & 36  & 05:14 & 10336   & 0:00  \\
+3C 7D    & 42  & 06:03 & 35902   & 0:00  \\
+3C 8D    & 48  & 06:47 & 127570  & 0:01  \\
+3C 9D    & 54  & 07:36 & 460872  & 0:08  \\
+3C 10D   & 60  & 08:45 & 1472853 & 0:32  \\
+3C 11D   & 66  & 09:22 & 4609309 & 2:23  \\
+3C 5D 1G & 30  & 04:23 & 2855    & 0:00  \\
+3C 6D 1G & 36  & 05:29 & 10136   & 0:00  \\
+3C 7D 1G & 42  & 06:07 & 38613   & 0:00  \\
+3C 8D 1G & 48  & 06:41 & 125988  & 0:01  \\
+3C 9D 1G & 54  & 07:38 & 442564  & 0:08  \\
+3C 7D 2G & 42  & 06:23 & 38217   & 0:00  \\
+3C 8D 2G & 48  & 06:53 & 125267  & 0:01  \\
+3C 9D 2G & 54  & 07:53 & 442122  & 0:08  \\
+3C 9D 3G & 54  & 07:48 & 442412  & 0:09  \\
+4C 7D    & 84  & 12:21 & 1548120 & 0:45  \\
+\belowspace
+5C 5D    & 100 & 14:14 & 261089  & 0:10  \\
+\hline
+\end{tabular}
+\end{sc}
+\end{small}
+\end{center}
+\vskip -0.1in
+\end{table}
+
+From the results, we see that flight time increases linearly and that Balas' algorithm increases exponentially (as expected). We tried running a three
+city, twelve day example, but Balas' algorithm continued for over three hours without getting anything done. It seems like once we start increasing
+the number of days and cities beyond what are shown in Table~\ref{tab:single-node}, Balas' algorithm will be the limiting factor of our algorithm.
 
 \subsection{Multi-Node Experiments}\label{sec:distributed_experiment}
-{\bf TODO}
 
-\subsection{Thoughts}
+The goal now is to understand the impact of 
 
-The results of Sections~\ref{sec:single_experiment} and~\ref{sec:distributed_experiment} show a number of interesting properties.
 
 \section{Limitations}\label{sec:limitations}
 % TODO We can cut out some of the limitations here because it's fairly long...
@@ -556,7 +602,7 @@ Outline of Supplementary Material:
 
 \begin{itemize}[noitemsep]
     \item why solutions to linear and integer programming can differ enormously
-    \item a detailed discussion of our implementation of Balas' Additive Algorithm
+    \item a detailed discussion of Balas' Additive Algorithm and our implementation
     \item additional experiments and examples that could not fit in the text
 \end{itemize}
 
@@ -865,8 +911,8 @@ Flights ordered by cost:
 [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210]
 Flights ordered by date:
 [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210, ATL->LAX on 06/03/2014, $172]
-Flight check time in hours:minutes:milliseconds -- 0:2:31.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:2:31.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -940,8 +986,8 @@ Flights ordered by cost:
 [ORD->ATL on 06/04/2014, $150, LAX->ORD on 06/03/2014, $154, ATL->LAX on 06/02/2014, $201]
 Flights ordered by date:
 [ATL->LAX on 06/02/2014, $201, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/04/2014, $150]
-Flight check time in hours:minutes:milliseconds -- 0:4:1.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:4:1.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -983,8 +1029,8 @@ Best solution:
 Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX
 Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
 Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
-Flight check time in hours:minutes:milliseconds -- 0:4:23.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:4:23.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -1017,8 +1063,8 @@ with cost 458
 Original problem from client was 06/01/2014 06/06/2014 ATL ORD LAX
 Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
 Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
-Flight check time in hours:minutes:milliseconds -- 0:5:14.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:5:14.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -1055,8 +1101,8 @@ Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX
 Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
 Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
-Flight check time in hours:minutes:milliseconds -- 0:6:3.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:6:3.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -1092,8 +1138,8 @@ with cost 458
 Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX
 Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
 Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
-Flight check time in hours:minutes:milliseconds -- 0:6:47.
-DFS search time in hours:minutes:milliseconds -- 0:0:1.
+Flight check time in hours:minutes:seconds -- 0:6:47.
+DFS search time in hours:minutes:seconds -- 0:0:1.
 \end{verbatim}
 \normalsize
 
@@ -1128,8 +1174,8 @@ Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
 Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX
 Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
 Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
-Flight check time in hours:minutes:milliseconds -- 0:7:36.
-DFS search time in hours:minutes:milliseconds -- 0:0:8.
+Flight check time in hours:minutes:seconds -- 0:7:36.
+DFS search time in hours:minutes:seconds -- 0:0:8.
 \end{verbatim}
 \normalsize
 
@@ -1167,8 +1213,8 @@ Best solution:
 Original problem from client was 06/01/2014 06/10/2014 ATL ORD LAX
 Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/10/2014, $140, ATL->LAX on 06/03/2014, $172]
 Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/10/2014, $140]
-Flight check time in hours:minutes:milliseconds -- 0:8:45.
-DFS search time in hours:minutes:milliseconds -- 0:0:32.
+Flight check time in hours:minutes:seconds -- 0:8:45.
+DFS search time in hours:minutes:seconds -- 0:0:32.
 \end{verbatim}
 \normalsize
 
@@ -1212,8 +1258,8 @@ Best solution:
 Original problem from client was 06/01/2014 06/11/2014 ATL ORD LAX
 Flights ordered by cost: [ORD->LAX on 06/11/2014, $135, ATL->ORD on 06/10/2014, $140, LAX->ATL on 06/03/2014, $171]
 Flights ordered by date: [LAX->ATL on 06/03/2014, $171, ATL->ORD on 06/10/2014, $140, ORD->LAX on 06/11/2014, $135]
-Flight check time in hours:minutes:milliseconds -- 0:9:22.
-DFS search time in hours:minutes:milliseconds -- 0:2:23.
+Flight check time in hours:minutes:seconds -- 0:9:22.
+DFS search time in hours:minutes:seconds -- 0:2:23.
 \end{verbatim}
 \normalsize
 
@@ -1274,8 +1320,8 @@ with cost 566
 
 Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX 1
 Flights ordered by date: [ATL->LAX on 06/01/2014, $261, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151]
-Flight check time in hours:minutes:milliseconds -- 0:4:23.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:4:23.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -1291,8 +1337,8 @@ Best solution: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
 
 Original problem from client was 06/01/2014 06/06/2014 ATL ORD LAX 1
 Flights ordered by date: [LAX->ORD on 06/02/2014, $174, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/06/2014, $187]
-Flight check time in hours:minutes:milliseconds -- 0:5:29.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:5:29.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -1308,8 +1354,8 @@ Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
 
 Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX 1
 Flights ordered by date: [LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/07/2014, $177]
-Flight check time in hours:minutes:milliseconds -- 0:6:7.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:6:7.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -1325,8 +1371,8 @@ Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
 
 Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX 1
 Flights ordered by date: [LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/07/2014, $177]
-Flight check time in hours:minutes:milliseconds -- 0:6:41.
-DFS search time in hours:minutes:milliseconds -- 0:0:1.
+Flight check time in hours:minutes:seconds -- 0:6:41.
+DFS search time in hours:minutes:seconds -- 0:0:1.
 \end{verbatim}
 \normalsize
 
@@ -1343,8 +1389,8 @@ Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 1
 Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/07/2014, $151, ATL->LAX on 06/09/2014, $182]
 Flights ordered by date: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/07/2014, $151, ATL->LAX on 06/09/2014, $182]
-Flight check time in hours:minutes:milliseconds -- 0:7:38.
-DFS search time in hours:minutes:milliseconds -- 0:0:8.
+Flight check time in hours:minutes:seconds -- 0:7:38.
+DFS search time in hours:minutes:seconds -- 0:0:8.
 \end{verbatim}
 \normalsize
 
@@ -1376,8 +1422,8 @@ Best solution: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX 2
 Flights ordered by cost: [ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172, LAX->ORD on 06/01/2014, $204]
 Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172]
-Flight check time in hours:minutes:milliseconds -- 0:6:23.
-DFS search time in hours:minutes:milliseconds -- 0:0:0.
+Flight check time in hours:minutes:seconds -- 0:6:23.
+DFS search time in hours:minutes:seconds -- 0:0:0.
 \end{verbatim}
 \normalsize
 
@@ -1394,8 +1440,8 @@ Best solution: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
 Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX 2
 Flights ordered by cost: [ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172, LAX->ORD on 06/01/2014, $204]
 Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172]
-Flight check time in hours:minutes:milliseconds -- 0:6:53.
-DFS search time in hours:minutes:milliseconds -- 0:0:1.
+Flight check time in hours:minutes:seconds -- 0:6:53.
+DFS search time in hours:minutes:seconds -- 0:0:1.
 \end{verbatim}
 \normalsize
 
@@ -1412,8 +1458,8 @@ Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
 Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 2
 Flights ordered by cost: [ORD->ATL on 06/05/2014, $151, LAX->ORD on 06/02/2014, $174, ATL->LAX on 06/09/2014, $182]
 Flights ordered by date: [LAX->ORD on 06/02/2014, $174, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182]
-Flight check time in hours:minutes:milliseconds -- 0:7:53.
-DFS search time in hours:minutes:milliseconds -- 0:0:8.
+Flight check time in hours:minutes:seconds -- 0:7:53.
+DFS search time in hours:minutes:seconds -- 0:0:8.
 \end{verbatim}
 \normalsize
 
@@ -1430,8 +1476,8 @@ Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 3
 Flights ordered by cost: [ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182, LAX->ORD on 06/01/2014, $204]
 Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182]
-Flight check time in hours:minutes:milliseconds -- 0:7:48.
-DFS search time in hours:minutes:milliseconds -- 0:0:9.
+Flight check time in hours:minutes:seconds -- 0:7:48.
+DFS search time in hours:minutes:seconds -- 0:0:9.
 \end{verbatim}
 \normalsize
 
@@ -1467,8 +1513,8 @@ Flights ordered by date:
 [LAX->ORD on 06/04/2014, $135, ORD->MIA on 06/05/2014, $139,
 MIA->ATL on 06/06/2014, $137, ATL->LAX on 06/07/2014, $172]
 
-Flight check time in hours:minutes:milliseconds -- 0:12:21.
-DFS search time in hours:minutes:milliseconds -- 0:0:45.
+Flight check time in hours:minutes:seconds -- 0:12:21.
+DFS search time in hours:minutes:seconds -- 0:0:45.
 \end{verbatim}
 \normalsize
 
@@ -1496,8 +1542,8 @@ ORD->MIA on 06/05/2014, $139, MIA->ATL on 06/01/2014, $177, ATL->LAX on 06/02/20
 Flights ordered by date: [MIA->ATL on 06/01/2014, $177, ATL->LAX on 06/02/2014, $201,
 LAX->DFW on 06/03/2014, $118, DFW->ORD on 06/04/2014, $84, ORD->MIA on 06/05/2014, $139]
 
-Flight check time in hours:minutes:milliseconds -- 0:14:14.
-DFS search time in hours:minutes:milliseconds -- 0:0:10.
+Flight check time in hours:minutes:seconds -- 0:14:14.
+DFS search time in hours:minutes:seconds -- 0:0:10.
 \end{verbatim}
 \normalsize
 

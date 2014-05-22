@@ -463,8 +463,8 @@ public class MasterServer {
         for (int i = 0; i < best_flights.size(); i++) {
             result[i] = best_flights.get(i).toString();
         }
-        System.out.println("Flight check time in hours:minutes:milliseconds -- " + flightCheckTime + ".");
-        System.out.println("DFS search time in hours:minutes:milliseconds -- " + balasTime + ".");
+        System.out.println("Flight check time in hours:minutes:seconds -- " + flightCheckTime + ".");
+        System.out.println("DFS search time in hours:minutes:seconds -- " + balasTime + ".");
         return result;
     }
 
