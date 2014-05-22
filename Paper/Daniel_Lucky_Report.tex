@@ -365,10 +365,11 @@ Section~\ref{sec:master_server}).
 The master server is the workhorse of our system. It takes in the user request sent in from the front-end server from
 Section~\ref{sec:front_end_server}. When a request comes in, the master sever runs a variety of checks and parses the input to make sure that the
 request is sound. For instance, given the optional argument where the user can specify the minimum number of days between flights, the server checks
-that the full date range is large enough to allow that case to happen. For the full list of checks we implement, see Appendix~\ref{app:input_check}. We
-do not catch all possible cases of possible pathological inputs, in part because it is challenging to do so in a command line argument, and also
-because we trust our users not to wreck the system. (There has been substantial research in the literature about trust management in systems, such
-as~\cite{Blaze:2001:RTM:380171.380186}; for now we eschew these details.)
+that the full date range is large enough to allow that case to happen. We do not catch all possible cases of possible pathological inputs, in part
+because it is challenging to do so in a command line argument, and also because we trust our users not to wreck the system. (There has been
+substantial research in the literature about trust management in systems, such as~\cite{Blaze:2001:RTM:380171.380186}; for now we eschew these
+details.)
+% TODO We can put an appendix in to describe our checks, but I'm getting tired of writing already.
 
 After parsing the input, the master sever has two important tasks. The first is that it needs to obtain the cheapest flight that goes from cities $i$
 to $j$ on day $t$ for all possible combinations of $i, j,$ and $t$ as specified by the user. It accomplishes this by calling the crawler server, also
@@ -474,6 +475,11 @@ we could have a flight landing at the very end of day $t$ and the next flight de
 We do not have ways of facing this limitation in our system, but one possible idea is to treat time in one-hour units, rather than 24-hour units,
 giving us a finer grain of control. It is unclear how much this would complicate the rest of our constraints.
 
+\subsection{Requests Spanning Months and Years}
+
+We currently implement only a primitive form of date-checking in order to determine all the dates (in MM/DD/YY format) within a range and to tell
+whether two dates
+
 \subsection{One Ticket, Multiple Flights}
 
 One issue related to optimality is that even if we search for all possible direct flight combinations and find the cheapest collective route, it may
@@ -543,7 +549,6 @@ Outline of Supplementary Material:
 \begin{itemize}[noitemsep]
     \item why solutions to linear and integer programming can differ enormously
     \item a detailed discussion of our implementation of Balas' Additive Algorithm
-    \item how we check and parse the user input in our code
     \item additional experiments and examples that could not fit in the text
 \end{itemize}
 
@@ -585,6 +590,12 @@ bound to the integer programming solution (and lower bound if the goal is to min
 Another enlightening example of the difference between integer and linear programming is in Chapter 9 of~\cite{bradley1977applied}, which also
 demonstrates how the optimal linear and integral solutions can be arbitrarily far away from each other, in terms of distance in the plane or total
 cost.
+
+
+
+
+
+
 
 \newpage
 \section{Balas' Additive Algorithm}\label{app:balas}
@@ -682,11 +693,17 @@ formed from appending $[0]$ and $[1]$. This was inefficient as it caused us to r
 noticed that the depth-first search was expanding a little over \emph{half} as many nodes as before! Any small improvement we can make to this
 algorithm is imperative, given its general exponential-time complexity with respect to the number of cities and days.
 
-\newpage
-\section{Checking User Input}\label{app:input_check}
 
-We should describe the full list of checks we make, and see what might go wrong...
-{\bf TODO}
+
+
+
+
+
+
+
+
+
+
 
 \newpage
 \section{Experiments on a Single Machine}\label{app:single_machine_experiment}
@@ -728,18 +745,18 @@ Then we have the ones from Section~\ref{app:three-city-mindays}:
     \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 3}
 \end{itemize}
 
-Finally, the ones from Section~\ref{app:many-cities} are\footnote{The number of experiments is already quite high, so we basically used the last
+Finally, the three in Section~\ref{app:many-cities} are\footnote{The number of experiments is already quite high, so we basically used the last
 section to explore the limits of our solver.}:
 
 \begin{itemize}[noitemsep]
     \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX MIA}
-    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX MIA 1}
     \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX MIA DFW}
     \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX MIA DFW}
 \end{itemize}
 
 Notice that a four city, eight day request ran Balas' algorithm for \emph{several hours}, before we decided to quit it because it was slowing down,
-most likely due to eating up too much memory.
+most likely due to eating up too much memory. It had $4\cdot 3\cdot 8 = 96$ variables, and we suspect that 100 is around the time when things start
+becoming infeasible (at least, on one machine with limited memory).
 
 We record the following quantities:
 
@@ -888,7 +905,7 @@ So what happens when we add in an extra day? The following input:
 06/01/2014 06/04/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output:
+has output:
 
 \scriptsize
 \begin{verbatim}
@@ -936,7 +953,7 @@ hope that is still the case when we add another day. The following input:
 06/01/2014 06/05/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output:
+has output:
 
 \scriptsize
 \begin{verbatim}
@@ -972,7 +989,7 @@ Let us add a day. The following input:
 06/01/2014 06/06/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output (note: we remove the full paths since they start to get long):
+has output (note: we remove the full paths since they start to get long):
 
 \scriptsize
 \begin{verbatim}
@@ -1010,7 +1027,7 @@ With that aside, let us add in \emph{another} day. The following input:
 06/01/2014 06/07/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output:
+has output:
 
 \scriptsize
 \begin{verbatim}
@@ -1043,7 +1060,7 @@ As usual, we continue by adding a day. The following input:
 06/01/2014 06/08/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output:
+has output:
 
 \scriptsize
 \begin{verbatim}
@@ -1080,7 +1097,7 @@ The following input (we're now approaching double-digit days...):
 06/01/2014 06/09/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output:
+has output:
 
 \scriptsize
 \begin{verbatim}
@@ -1114,7 +1131,7 @@ Unfortunately, we get no improvement and Balas' algorithm now takes eight second
 06/01/2014 06/10/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output:
+has output:
 
 \scriptsize
 \begin{verbatim}
@@ -1156,7 +1173,7 @@ Let us add in one more day. The following eleven-day request:
 06/01/2014 06/11/2014 ATL ORD LAX
 \end{verbatim}
 
-Has output:
+has output:
 
 \scriptsize
 \begin{verbatim}
@@ -1231,6 +1248,9 @@ immediately abort upon receiving this impossible request:
 For brevity, we will further reduce the amount of output shown for each experiment.
 
 \subsubsection{Three-City Requests with a One Day Gap}
+
+A quick note: you can actually tell the request we made because the code will output ``Original problem from client...''. So in this mini-section (and
+the next) we'll just refer to them as ``Experiment X.''
 
 Experiment 1:
 
@@ -1319,11 +1339,20 @@ DFS search time in hours:minutes:milliseconds -- 0:0:8.
 \end{verbatim}
 \normalsize
 
-There are a number of things we can say about these results.
+There are a number of things we can say about these results. The first is that the minimum number of days requirement is respected in all the
+solutions. Also, the total number of ``min-day errors'' caught becomes substantial as the date range increases, which is entirely as expected.  The
+number of errors caught is still much smaller than the number of nodes expanded, so it is unlikely that the extra ``pruning'' here (i.e., pruning in
+the sense that we discard solutions that violate the minimum days between flight) will result in a noticeable speedup compared to the same request
+without restriction on minimum number of days. Indeed, looking at the results for this same request but without the day restriction (see
+Section~\ref{app:three_city}), both of the nine day requests took eight seconds to go through Balas' algorithm.
 
-{\bf TODO}
+Overall, these results show that a user can customize his or her trip to some extent. We chose this customization because it made sense to allow the
+user to have the option to stay at cities for some minimum length of time. In fact, the lack of this feature this was the number one complaint of our
+flight system when we explained the basics of it to other Williams students.
 
 \subsubsection{Three-City Requests with Two and Three Day Gaps}
+
+Here, we show the output of experiments that involve two and three day gaps.
 
 Experiment 1:
 
@@ -1397,35 +1426,76 @@ DFS search time in hours:minutes:milliseconds -- 0:0:9.
 \end{verbatim}
 \normalsize
 
-Again there is a lot to say about these results.
+Again, all the results here are logically correct and obey the minimum days.
 
-{\bf TODO}
 
 \subsection{At Least Four Cities}\label{app:many-cities}
 
-Here, we get into more demanding experiments.
+Here, we get into more demanding experiments, designed to test the limits of our computation. First, we run an experiment with the following as input:
 
-{\bf TODO}
+\begin{verbatim}
+06/01/2014 06/07/2014 ATL ORD LAX MIA
+\end{verbatim}
 
-Experiment 1:
+This has $4 \cdot 3 \cdot 7 = 84$ variables, which already exceeds the 66 that were in the three city, eleven day request (which took more than two
+minutes to finish Balas' algorithm). The output is:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 1548120, total cost/feasibility look-aheads: 3096204
+Total flight logic errors caught: 24, total min-days errors caught: 0
+Total pruning checks: 4598573, total successful: 3050478
+Best solution: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 583
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX MIA
+Flights ordered by cost:
+[LAX->ORD on 06/04/2014, $135, MIA->ATL on 06/06/2014, $137,
+ORD->MIA on 06/05/2014, $139, ATL->LAX on 06/07/2014, $172]
+
+Flights ordered by date:
+[LAX->ORD on 06/04/2014, $135, ORD->MIA on 06/05/2014, $139,
+MIA->ATL on 06/06/2014, $137, ATL->LAX on 06/07/2014, $172]
+
+Flight check time in hours:minutes:milliseconds -- 0:12:21.
+DFS search time in hours:minutes:milliseconds -- 0:0:45.
+\end{verbatim}
+\normalsize
+
+This only took 45 seconds to run, so it is not too bad. Unfortunately, adding in an eighth day resulted in our code getting stuck.
+
+Here is an example of a request with five cities and five days:
 
 
-Experiment 1:
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 261089, total cost/feasibility look-aheads: 522178
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 783093, total successful: 522005
+Best solution: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+with cost 719
 
+Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX MIA DFW
 
-Experiment 1:
+Flights ordered by cost: [DFW->ORD on 06/04/2014, $84, LAX->DFW on 06/03/2014, $118,
+ORD->MIA on 06/05/2014, $139, MIA->ATL on 06/01/2014, $177, ATL->LAX on 06/02/2014, $201]
 
+Flights ordered by date: [MIA->ATL on 06/01/2014, $177, ATL->LAX on 06/02/2014, $201,
+LAX->DFW on 06/03/2014, $118, DFW->ORD on 06/04/2014, $84, ORD->MIA on 06/05/2014, $139]
 
-Experiment 1:
+Flight check time in hours:minutes:milliseconds -- 0:14:14.
+DFS search time in hours:minutes:milliseconds -- 0:0:10.
+\end{verbatim}
+\normalsize
 
+So this was not too bad. Last but not least, an example with five cities and six days, which will have $5\cdot 4\cdot 5 = 100$ variables, the most we
+have had for any experiment in the Appendix.
 
-Experiment 1:
-
-
-Experiment 1:
-
-
-Experiment 1:
+{\bf TODO Describe these results}
 
 
 \end{document} 
