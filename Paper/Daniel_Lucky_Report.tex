@@ -105,11 +105,11 @@ each node exactly once (i.e., a Hamiltonian cycle). Each edge has a cost associa
 there exists a valid Hamiltonian cycle with cost bounded by $B$, is NP-complete~\cite{Kar72}. In our case, we do not force the user to visit each
 city exactly once because the cheapest flight through a sequence of cities \emph{may require} visiting a city more than once.
 
-What makes our problem (likely) much harder than the Traveling Salesman Problem is that the cost of an edge between two nodes in our graph (i.e., two
-cities) is not constant, because flight prices frequently change. We coin our problem the ``Distributed Retired Traveling Salesman Problem.'' The
-``Retired'' portion comes from how we assume that whoever is planning this trip is retired, because otherwise, how would he or she have the time and
-money? The ``Distributed'' part is because we incorporate concepts from the design and practice of distributed systems to build software that can
-tackle this problem. We discuss the mathematical and systems portions of our solution in Sections~\ref{sec:math} and~\ref{sec:systems}, respectively.
+What makes our problem (likely) much harder than the Traveling Salesman Problem is that the cost of an edge between two nodes (i.e., two cities) is
+not constant, because flight prices frequently change. We coin our problem the ``Distributed Retired Traveling Salesman Problem.'' ``Retired'' comes
+from how we assume that whoever is planning this trip is retired, because otherwise, how would he or she have the time and money?  ``Distributed''
+comes from how we incorporate concepts from the design and practice of distributed systems to build software that can tackle this problem. We discuss
+the mathematical and systems portions of our solution in Sections~\ref{sec:math} and~\ref{sec:systems}, respectively.
 
 \begin{figure}[t]
 \vskip 0.2in
@@ -196,10 +196,10 @@ Thus, a solution to our problem will be the full assignment to each of the above
 (assuming the set has cardinality $k$) correspond to $k$ flights $f_1, \ldots, f_k$ ordered by date.
 
 For now, we make several simplifying assumptions, and defer a more detailed discussion about the realism of this project in
-Section~\ref{sec:limitations}. Perhaps the most important one is that we assume each flight is assigned to exactly one day. We will also force a valid
-solution to have flights all on different days. This means, at the moment, we do not consider issues related to (1) overnight flights (we will pretend
-they do not exist), (2) multiple-stop flights on the same day, and (3) possible logistic impossibilities such as flight $f_i$ arriving at 11:59 PM and
-then the next flight $f_{i+1}$ departing from the same airport two minutes later (but on the next day).
+Section~\ref{sec:limitations}. Perhaps the most important one is that we assume each flight is assigned to exactly one day. We also force a valid
+solution to have flights on unique days. This means we do not consider issues related to (1) overnight flights (we will pretend they do not exist),
+(2) multiple-stop flights on the same day, and (3) possible logistic impossibilities such as flight $f_i$ arriving at 11:59 PM and then the next
+flight $f_{i+1}$ departing from the same airport two minutes later (but on the next day).
 
 The goal is to solve this minimization problem:
 
@@ -218,8 +218,8 @@ The first constraint ensures that we have at most one flight per day, which is g
 second constraint ensures we enter each city at least once. The third constraint ensures we leave each city at least once. These last two reinforce
 the notion that going through the cheapest route may mean visiting several cities more than once.
 
-Sadly, these previous constraints are \emph{not} enough to solve our problem. There are two glaring issues with the current constraints that, if we
-were to use them to solve this flight scheduling problem, could result in a logically inconsistent flight route.
+Sadly, these previous constraints are \emph{not} enough to solve our problem. If we were to use them, we could get a logically inconsistent flight
+route due to two main reasons.
 
 \subsubsection{Disjoint Cycles}\label{sec:disjoint_cycles}
 
@@ -237,10 +237,10 @@ different days, the route satisfies our constraints, because we enter and exit e
 \vskip -0.2in
 \end{figure}
 
-To prevent disjoint cycles, we need to add additional constraints that correspond to all the ways we can subdivide the cities into two groups so that
-both of them contain at least two cities. (A subdivision where one group only has one city is already covered by our earlier constraints since we
-would have to leave and enter that city at least once, which requires connecting with the other group.) For instance, with the six-variable situation
-in Figure~\ref{fig:bad_solution}, one constraint would be
+To prevent disjoint cycles, we need to add constraints that correspond to all the ways we can subdivide the cities into two groups so that both
+contain at least two cities. (A subdivision where one group only has one city is already covered by our earlier constraints since we would have to
+leave and enter that city at least once, which requires connecting with the other group.) For instance, with the six-variable situation in
+Figure~\ref{fig:bad_solution}, one constraint would be
 \begin{align}
 \sum_{t=1}^{m} (&x_{14t} + x_{15t} + x_{16t} + x_{24t} + x_{25t} + \\
 & x_{26t} + x_{34t} + x_{35t} + x_{36t}) \ge 1, \nonumber
@@ -258,19 +258,19 @@ The reasoning is straightforward: we have two groups, and we want to pick the nu
 elements to be in one group, and assign all the rest to the others.
 
 One technical note is that the number of constraints from Lemma~\ref{lem:cycle_constraints} can be halved by symmetry. Still, the number of equations
-needed grows rapidly with respect to $n$, and the need to implement these various restrictions is why integer programming is a hard task. Integer
-programming is, in fact, an NP-hard problem, and the binary case is NP-complete~\cite{Kar72}. In contrast, faster algorithms such as the Simplex
-method\footnote{The Simplex Method performs well in practice but its runtime has historically been difficult to evaluate, as in the worst case it
-\emph{can} run in exponential time~\cite{Klee1972}. The simplex algorithm has \emph{smoothed complexity} polynomial in the input size; for details
-about this, see~\cite{Spielman:2004:SAA:990308.990310}.} are used to solve linear programming problems. Note that simply taking a solution to the
-linear programming problem and then rounding it to form a ``solution'' to the integer problem will not work, as we show in Appendix~\ref{app:lin_vs_int}.
+needed grows rapidly with respect to $n$, and the need to implement these is why integer programming is a hard task. Integer programming is, in fact,
+an NP-hard problem, and the binary case is NP-complete~\cite{Kar72}. In contrast, faster algorithms such as the Simplex method\footnote{The Simplex
+Method performs well in practice but its runtime has historically been difficult to evaluate, as in the worst case it \emph{can} run in exponential
+time~\cite{Klee1972}. The simplex algorithm has \emph{smoothed complexity} polynomial in the input size; for details about this,
+see~\cite{Spielman:2004:SAA:990308.990310}.} are used to solve linear programming problems. Note that simply taking a solution to the linear
+programming problem and then rounding it to form a ``solution'' to the integer problem will not work, as we show in Appendix~\ref{app:lin_vs_int}.
 
 \subsubsection{Consecutive Flights in Different Cities}
 
-The second problem with the constraints posed earlier in Section~\ref{sec:int_prog_form}, which the constraints in~\ref{sec:disjoint_cycles} do
-\emph{not} resolve, is that we can get flight orderings that are logically inconsistent in the sense that consecutive flights may not agree in their
-choice of cities. It makes no sense, for instance, to have flights $f_i$ and $f_{i+1}$ where $f_i$ takes the participant from NYC to Tokyo, and
-$f_{i+1}$ takes him or her from Paris to London.
+The second problem with the constraints in Section~\ref{sec:int_prog_form}, which the constraints in~\ref{sec:disjoint_cycles} do \emph{not} resolve,
+is that we can get flight orderings that are logically inconsistent in the sense that consecutive flights may not agree in their choice of cities. It
+makes no sense, for instance, to have flights $f_i$ and $f_{i+1}$ where $f_i$ takes the participant from NYC to Tokyo, and $f_{i+1}$ takes him or her
+from Paris to London.
 
 Unfortunately, fixing the flight ordering by adding in constraints is challenging and requires a large number of equations. Our implementation only
 adds in one layer of constraints for here, and defers a complete flight logic check to the code that actually generates the tree. Specifically, for
@@ -309,78 +309,74 @@ brevity we elide additional technical details of the algorithm and refer the rea
 
 
 
+
+% The second major part of the implementation
 \section{Systems Component}\label{sec:systems}
-
-We now switch topics and discuss the implementation side. Our code that solves the Distributed Retired Traveling Salesman Problem is made up of
-several components that form a multi-tiered client-server model (for an introduction to the client-server model,
-see~\cite{Tanenbaum:2006:DSP:1202502}).  We have a front-end server, a master server, and a group of slave servers in the system, as shown in
-Figure~\ref{fig:machines}. The slave servers come from machines that we use. Originally, we wanted to use PlanetLab~\cite{conf/osdi/PetersonBFM06},
-which is a global platform for deploying and evaluating network services and allows people to use portions of other PlanetLab computers. This was too
-complicated to work with, so we stuck with the Williams lab computers.
-
-{\bf TODO We need to fix this up ... and once I get what we're doing here, we can change the slave sever section.}
 
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{servers}}
-\caption{{\bf TODO. We need to change this.}}
+\caption{This is our ideal machine setup.}
 \label{fig:machines}
 \end{center}
 \vskip -0.2in
 \end{figure}
 
+We now step back from the mathematics and discuss the implementation. Our code that solves the Distributed Retired Traveling Salesman Problem is
+made up of several components that form a multi-tiered client-server model (for an introduction to the client-server model,
+see~\cite{Tanenbaum:2006:DSP:1202502}). Figure~\ref{fig:machines} gives a rough sketch of our ideal machine setup. We have a front-end server, a
+master server, and a group of slave (``crawler'') servers.  
+
 \subsection{Front-end Server}\label{sec:front_end_server}
 
-The front-end server acts as a point of communication between the client\footnote{Somewhat impolitely, we can refer to the set of clients, minus us,
-as the ``ignorant masses.''} and our master server. It is a Python script that starts on the command line and outputs introductory messages to the
-client so that he or she knows how to use our system. The front-end serve receives user input, forwards the request to the master server (step
-\texttt{1} in Figure~\ref{fig:machines}), listens to the master for the result (step \texttt{6}), and displays the result when it is ready. The result
-that we print back to the user is currently the single best list of the flights ordered by departure date. If there is more than one optimal solution,
-it only returns one of them.
+The front-end server acts as a point of communication between the client\footnote{Somewhat impolitely, we refer to the set of clients, minus Daniel
+Seita, as the ``ignorant masses.''} and our master server. It is a Python script that starts on the command line and outputs messages to the client
+to let him or her know how to use our system. The front-end serve receives user input, forwards the request to the master server (step \texttt{1} in
+Figure~\ref{fig:machines}), listens to the master for the result (step \texttt{6}), and displays it back when ready. Currently, the result is just the
+single best list of the flights ordered by departure date. If there is more than one optimal solution, it only returns one of them.
 
 \begin{figure}[t]
 \vskip 0.2in
 \begin{center}
-\centerline{\includegraphics[width=\columnwidth]{front_end_server2}}
+\centerline{\includegraphics[width=\columnwidth]{front_end_server3}}
 \caption{This shows our front-end server.}
 \label{fig:front_end_server}
 \end{center}
 \vskip -0.2in
 \end{figure}
 
-Figure~\ref{fig:front_end_server} shows a version of our front-end server (we frequently change its design). Here, the hypothetical user made a
-request to find the cheapest flight route that touches Chicago, Boston, and Seattle in the four day period of June 11, 2014 to June 14, 2014.
-Our code ran and the master server returned the (valid) flight ordering of Seattle to Chicago, Chicago to Boston, then Boston to Seattle.
+Figure~\ref{fig:front_end_server} shows our current front-end server. Here, the hypothetical user made a request to find the cheapest flight route
+that touches Atlanta, Chicago, and Los Angeles in the three day period of June 1 through June 3.  Our code ran and returned the (valid) flight route
+of Chicago to Los Angeles to Atlanta that costs \$585.
 
-Notice that the front-end server has an optional argument where a user can insert a number at the end of their request to indicate the minimum number
-of days between any two flights. (The example from Figure~\ref{fig:front_end_server} just happened not to use it.) It is straightforward to add
-more of these optional arguments. If time permits, we also plan to transform the command-line interface to a website, which will expand our audience
-of potential clients. The front-end server does only minimal checks of the input and defers the parsing to the master server (see
-Section~\ref{sec:master_server}).
+Notice that the front-end server has an optional argument where the user can indicate the minimum number of days between two consecutive flights. (The
+example from Figure~\ref{fig:front_end_server} just happened not to use it.) It is straightforward to add more of these optional arguments. If time
+permits, we also plan to transform the command-line interface to a website, which will expand our audience of potential clients.
 
 
 \subsection{Master Server}\label{sec:master_server}
 
 The master server is the workhorse of our system. It takes in the user request sent in from the front-end server from
-Section~\ref{sec:front_end_server}. When a request comes in, the master sever runs a variety of checks and parses the input to make sure that the
-request is sound. For instance, given the optional argument where the user can specify the minimum number of days between flights, the server checks
-that the full date range is large enough to allow that case to happen. We do not catch all possible cases of possible pathological inputs, in part
-because it is challenging to do so in a command line argument, and also because we trust our users not to wreck the system. (There has been
-substantial research in the literature about trust management in systems, such as~\cite{Blaze:2001:RTM:380171.380186}; for now we eschew these
-details.)
+Section~\ref{sec:front_end_server}. When a request comes in, the master server runs a variety of checks to ensure the user's input is acceptable.  For
+instance, given the optional argument where the user can specify the minimum number of days between flights, the server checks that the full date
+range is large enough to allow that case to happen. We do not catch all possible cases of pathological inputs, in part because we trust our users not
+to wreck the system. (It is interesting to debate about the impact of trust in systems; for now, we gloss over these and refer the reader to sources
+such as~\cite{Blaze:2001:RTM:380171.380186}.)
 % TODO We can put an appendix in to describe our checks, but I'm getting tired of writing already.
 
-After parsing the input, the master sever has two important tasks. The first is that it needs to obtain the cheapest flight that goes from cities $i$
-to $j$ on day $t$ for all possible combinations of $i, j,$ and $t$ as specified by the user. It accomplishes this by calling the crawler server, also
-known as the ``slave server,'' which we discuss in Section~\ref{sec:slave_server}. Once it has all the flights, it proceeds to its next major task,
-which is to transform the flight information and user request into inputs suitable for binary integer programming. Computing the cost vector is easy;
-the challenging part is making sure that the constraints are well-defined. Once the master sever has computed the necessary constraint matrix, it will
-call the binary integer programming solver.  As discussed in Section~\ref{sec:balas}, this runs Balas' Additive Algorithm to create the final vector
-of variable assignments where $x_{ijt} = 1$ indicates that the cheapest valid route involves that corresponding flight. It is possible to distribute
-Balas' Additive Algorithm, but for ease of implementation, the algorithm runs on only one machine and is essentially part of the master server.
+After parsing the input, the master server has two important tasks. The first is that it needs to obtain the cheapest flight that goes from cities $i$
+to $j$ on day $t$ for all $n(n-1)m$ possible combinations. It accomplishes this by calling any idle slave servers to look up a single price, which
+spawns a new thread. Thus, with $k$ total flights and $\ell$ slaves, we expect each to contribute $k/\ell$ flight prices to the master. This is shown
+in Figure~\ref{fig:machines} as \texttt{2} and \texttt{4}. (That we only have two calls to each slave is just for simplicity, since there can be an
+arbitrary amount of them.)
 
-Upon completion, the master server feeds the result back to the client server.
+Once the master server has all the prices for the flights, it combines this information with the rest of the user request into inputs suitable for
+binary integer programming. Computing the cost vector is easy; the challenging part is making sure that the constraints are well-defined. Once the
+master sever has determined the constraint matrix, it calls the binary integer programming solver. As discussed in Section~\ref{sec:balas}, this runs
+Balas' Additive Algorithm to create the final vector of variable assignments. There, if $x_{ijt} = 1$, then the cheapest valid route involves that
+corresponding flight (and 0 otherwise). It is theoretically possible to distribute Balas' algorithm, but for ease of implementation, we currently run
+it on one machine, so it is essentially part of the master server. Upon completion, the master server feeds the result back to the client server.
 
 % TODO This old description is not really correct.
 % The Master server is the brain of the system. It listens to the user request sent from the front-end server (step \texttt{1} in
@@ -391,13 +387,18 @@ Upon completion, the master server feeds the result back to the client server.
 % zero-one linear programming algorithm on all slaves (steps \texttt{4} and \texttt{5}). After the computation, it sends the results of the cheapest
 % route back to the front-end server (step \texttt{6}).
 
-\subsection{Slave Server}\label{sec:slave_server}
+\subsection{Slave Servers}\label{sec:slave_server}
 
-The main purpose of the slave server is to use a web crawler to obtain prices of real airlines. This information is then relayed back to the master,
-which uses it for the binary integer programming formulation. To look up the prices, we implemented a web crawler that extracts prices from the Matrix
-Airfare Search\footnote{\url{http://matrix.itasoftware.com/}} database, powered by ITA Software and the best flight database currently available. We
-currently make use of only one slave server, and the consequence is that for ``small'' inputs, the flight checking typically is the most
-time-consuming task of the full system.
+The slave servers come from our own machines. Originally, we wanted to use PlanetLab~\cite{conf/osdi/PetersonBFM06}, which is a global platform for
+deploying and evaluating network services, but it was too complicated to work with. Currently, our system can have an unbounded amount of slave
+servers, each of which must be started before the user sends a request. The slave server's purpose is to, upon request from the master server, use a
+web crawler to obtain prices of real airlines and relay it back (steps \texttt{3} and \texttt{5} in Figure~\ref{fig:machines}, though again, the
+number is arbitrary).
+
+To look up the prices, we implemented a web crawler that extracts prices from the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}}
+database, which is powered by ITA Software and is the best flight database currently available. This induces a natural delay in searching for flights
+because the website must be loaded each time for a search, so for small inputs, the flight lookup process is typically much slower than Balas'
+algorithm
 
 % TODO This is not really correct.
 % We have a group of slave servers that listens to the command of the master server and does the distributed tasks of flight price querying (using the
@@ -409,15 +410,22 @@ time-consuming task of the full system.
 
 \section{Experiments and Results}\label{sec:experiments_results}
 
+We present a brief experimental analysis of our system. Due to space constraints, we only offer high-level descriptions here and defer the full output
+to Appendices.
+
+\subsection{Single-Node Experiments}\label{sec:single_experiment}
+
+of single-node
+experiments to Appendix~\ref{app:single_machine_experiment}.
+
 {\bf TODO}
 
-\subsection{Simple Examples}
+\subsection{Multi-Node Experiments}\label{sec:distributed_experiment}
 {\bf TODO}
 
-\subsection{Runtime Analysis}
-{\bf TODO}
+\subsection{Thoughts}
 
-
+The results of Sections~\ref{sec:single_experiment} and~\ref{sec:distributed_experiment} show a number of interesting properties.
 
 \section{Limitations}\label{sec:limitations}
 % TODO We can cut out some of the limitations here because it's fairly long...
@@ -745,18 +753,19 @@ Then we have the ones from Section~\ref{app:three-city-mindays}:
     \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 3}
 \end{itemize}
 
-Finally, the three in Section~\ref{app:many-cities} are\footnote{The number of experiments is already quite high, so we basically used the last
+Finally, the two in Section~\ref{app:many-cities} are\footnote{The number of experiments is already quite high, so we basically used the last
 section to explore the limits of our solver.}:
 
 \begin{itemize}[noitemsep]
     \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX MIA}
     \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX MIA DFW}
-    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX MIA DFW}
 \end{itemize}
 
 Notice that a four city, eight day request ran Balas' algorithm for \emph{several hours}, before we decided to quit it because it was slowing down,
 most likely due to eating up too much memory. It had $4\cdot 3\cdot 8 = 96$ variables, and we suspect that 100 is around the time when things start
-becoming infeasible (at least, on one machine with limited memory).
+becoming infeasible (at least, on one machine with limited memory). Five cities and six days (with 100 variables) \emph{could} run on one machine,
+though five cities and seven days probably would not. With three cities, we suspect the feasible limit is around 14 days; after that, it's too much.
+For six cities, we think six days is the best possible. Seven or more is too much.
 
 We record the following quantities:
 
@@ -1212,7 +1221,7 @@ A \emph{one dollar} improvement! That extra day really did make a difference.
 
 At this point, we will wrap up these experiments. Balas' Algorithm now takes almost two and a half minutes to run, and soon, it will be the limiting
 factor of our algorithm because the number of nodes to expand will be over ten million for the next iteration. Overall, we are extremely excited with
-these results.  The total runtime of a three-city, eleven day request (so $n(n-1)t = 66$ is still just over half a minute, and this is with using one
+these results.  The total runtime of a three-city, eleven day request (so $n(n-1)t = 66)$ is still just over half a minute, and this is with using one
 computer! Twelve cities might take an hour; thirteen cities or more would probably take days.
 
 
@@ -1492,10 +1501,9 @@ DFS search time in hours:minutes:milliseconds -- 0:0:10.
 \end{verbatim}
 \normalsize
 
-So this was not too bad. Last but not least, an example with five cities and six days, which will have $5\cdot 4\cdot 5 = 100$ variables, the most we
-have had for any experiment in the Appendix.
-
-{\bf TODO Describe these results}
+So this was not too bad. It took less than 15 minutes to run the whole thing, which had $5\cdot 4\cdot 5 = 100$ variables, the most of any experiment
+in the Appendix. In addition, running an experiment with five cities in six days was also relatively quick (output not shown here). Five cities in
+seven days would probably be infeasible with just one computer.
 
 
 \end{document} 

@@ -29,8 +29,14 @@ public class MasterServer {
     public static void main(String[] args) {
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8001");
         idleSlaveServers.add(crawlerServerAddr);
-        //crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
-        //idleSlaveServers.add(crawlerServerAddr);
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
+        idleSlaveServers.add(crawlerServerAddr);
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8003");
+        idleSlaveServers.add(crawlerServerAddr);
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8004");
+        idleSlaveServers.add(crawlerServerAddr);
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8005");
+        idleSlaveServers.add(crawlerServerAddr);
         MasterServer.startServer();
     }
 
