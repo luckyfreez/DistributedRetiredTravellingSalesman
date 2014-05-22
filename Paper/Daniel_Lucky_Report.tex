@@ -12,7 +12,7 @@
 \usepackage{algorithmic}
 
 % Stuff that I added in (Daniel Seita) 
-\usepackage{amsmath,amssymb,amsthm,enumitem,verbatim}
+\usepackage{amsmath,amssymb,amsthm,enumitem,verbatim,url}
 \graphicspath{ {Images/} }
 \newtheorem{thm}{Theorem}[section]
 \newtheorem{conj}[thm]{Conjecture}
@@ -586,7 +586,7 @@ Another enlightening example of the difference between integer and linear progra
 demonstrates how the optimal linear and integral solutions can be arbitrarily far away from each other, in terms of distance in the plane or total
 cost.
 
-
+\newpage
 \section{Balas' Additive Algorithm}\label{app:balas}
 
 We briefly introduced Balas' Additive Algorithm in Section~\ref{sec:balas} for solving binary integer programming problems, and in this section we
@@ -682,20 +682,25 @@ formed from appending $[0]$ and $[1]$. This was inefficient as it caused us to r
 noticed that the depth-first search was expanding a little over \emph{half} as many nodes as before! Any small improvement we can make to this
 algorithm is imperative, given its general exponential-time complexity with respect to the number of cities and days.
 
+\newpage
 \section{Checking User Input}\label{app:input_check}
 
 We should describe the full list of checks we make, and see what might go wrong...
 {\bf TODO}
 
+\newpage
 \section{Experiments on a Single Machine}\label{app:single_machine_experiment}
 
 In this section, we describe an in-depth demonstration of our system in action on one machine. The goal is to see how varying the parameters causes
 the solution to change (if it does), and to see how factors such as pruning and look-aheads affect the speed of our depth-first search. Be aware,
 though, that there is always a risk of experimenting with real flight data, because prices can change at any time\footnote{In fact, a week before
-finishing this paper, we ran an experiment in which the cost of one flight decreased by \$11 in between our trials, which took some time to figure
-out.}. To mitigate this risk, we run these experiments back-to-back.
+finishing this paper, we ran an experiment in which the cost of one flight decreased by \$11 in between our trials, which was why we got such
+surprising results that day.}. To mitigate this risk, we run these experiments back-to-back. We also decided to use the busiest American
+airports~\footnote{\url{http://en.wikipedia.org/wiki/List\_of\_the\_busiest\_airports\_in\_the\_United\_States}} in our input to avoid any potential
+complications with missing flights on certain days. (Future work should improve our code's failure capabilities.)
 
-Specifically, we run our flight scheduler code with the following requests:
+Specifically, we run our flight scheduler code with the following requests. First, we have the ones from Sections~\ref{app:first_flight_request}
+and~\ref{app:three_city}:
 
 \begin{itemize}[noitemsep]
     \item \texttt{06/01/2014 06/03/2014 ATL ORD LAX}
@@ -707,12 +712,34 @@ Specifically, we run our flight scheduler code with the following requests:
     \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX}
     \item \texttt{06/01/2014 06/10/2014 ATL ORD LAX}
     \item \texttt{06/01/2014 06/11/2014 ATL ORD LAX}
+\end{itemize}
+
+Then we have the ones from Section~\ref{app:three-city-mindays}:
+
+\begin{itemize}[noitemsep]
     \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX 1}
     \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX 1}
     \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 1}
     \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 1}
     \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 3}
 \end{itemize}
+
+Finally, the ones from Section~\ref{app:many-cities} are\footnote{The number of experiments is already quite high, so we basically used the last
+section to explore the limits of our solver.}:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX MIA}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX MIA 1}
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX MIA DFW}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX MIA DFW}
+\end{itemize}
+
+Notice that a four city, eight day request ran Balas' algorithm for \emph{several hours}, before we decided to quit it because it was slowing down,
+most likely due to eating up too much memory.
 
 We record the following quantities:
 
@@ -843,7 +870,7 @@ The total number of nodes expanded is 174, which is a substantial savings over t
 expected, there are no flight logic errors caught (because those require more days than flights) and there are no ``minimum day'' errors because we
 did not specify any.
 
-\subsection{Additional Three-City, No Minimum Day Queries}
+\subsection{Additional Three-City, No Minimum Day Queries}\label{app:three_city}
 
 This section describes additional three-city outputs without any required minimum number of days between flights. We will be more concise than in
 Section~\ref{app:first_flight_request} and include just the information we deem essential. We also briefly comment on the output of each experiment.
@@ -1169,9 +1196,10 @@ A \emph{one dollar} improvement! That extra day really did make a difference.
 At this point, we will wrap up these experiments. Balas' Algorithm now takes almost two and a half minutes to run, and soon, it will be the limiting
 factor of our algorithm because the number of nodes to expand will be over ten million for the next iteration. Overall, we are extremely excited with
 these results.  The total runtime of a three-city, eleven day request (so $n(n-1)t = 66$ is still just over half a minute, and this is with using one
-computer!
+computer! Twelve cities might take an hour; thirteen cities or more would probably take days.
 
-\subsection{Three-City Requests with Minimum Days}
+
+\subsection{Three-City Requests with Minimum Days}\label{app:three-city-mindays}
 
 Here, we describe some three-city requests \emph{with} minimum days enforced! We subdivide this into two parts. The first will show the output of the
 following requests:
@@ -1291,18 +1319,114 @@ DFS search time in hours:minutes:milliseconds -- 0:0:8.
 \end{verbatim}
 \normalsize
 
+There are a number of things we can say about these results.
+
+{\bf TODO}
+
 \subsubsection{Three-City Requests with Two and Three Day Gaps}
+
+Experiment 1:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 38217, total cost/feasibility look-aheads: 76432
+Total flight logic errors caught: 2, total min-days errors caught: 457
+Total pruning checks: 107555, total successful: 69341
+Best solution: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 526
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX 2
+Flights ordered by cost: [ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172, LAX->ORD on 06/01/2014, $204]
+Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172]
+Flight check time in hours:minutes:milliseconds -- 0:6:23.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 2:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 125267, total cost/feasibility look-aheads: 250532
+Total flight logic errors caught: 1, total min-days errors caught: 1411
+Total pruning checks: 347973, total successful: 222708
+Best solution: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 526
+
+Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX 2
+Flights ordered by cost: [ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172, LAX->ORD on 06/01/2014, $204]
+Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172]
+Flight check time in hours:minutes:milliseconds -- 0:6:53.
+DFS search time in hours:minutes:milliseconds -- 0:0:1.
+\end{verbatim}
+\normalsize
+
+Experiment 3:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 442122, total cost/feasibility look-aheads: 884242
+Total flight logic errors caught: 2, total min-days errors caught: 5338
+Total pruning checks: 1221925, total successful: 779806
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 507
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 2
+Flights ordered by cost: [ORD->ATL on 06/05/2014, $151, LAX->ORD on 06/02/2014, $174, ATL->LAX on 06/09/2014, $182]
+Flights ordered by date: [LAX->ORD on 06/02/2014, $174, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flight check time in hours:minutes:milliseconds -- 0:7:53.
+DFS search time in hours:minutes:milliseconds -- 0:0:8.
+\end{verbatim}
+\normalsize
+
+Experiment 4:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 442412, total cost/feasibility look-aheads: 884822
+Total flight logic errors caught: 1, total min-days errors caught: 30005
+Total pruning checks: 1229465, total successful: 787055
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 537
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 3
+Flights ordered by cost: [ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182, LAX->ORD on 06/01/2014, $204]
+Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flight check time in hours:minutes:milliseconds -- 0:7:48.
+DFS search time in hours:minutes:milliseconds -- 0:0:9.
+\end{verbatim}
+\normalsize
+
+Again there is a lot to say about these results.
+
+{\bf TODO}
+
+\subsection{At Least Four Cities}\label{app:many-cities}
+
+Here, we get into more demanding experiments.
+
+{\bf TODO}
+
+Experiment 1:
 
 
 Experiment 1:
-Experiment 2:
-Experiment 3:
-Experiment 4:
 
 
-\subsection{At Least Four Cities}
+Experiment 1:
 
-Here, we get into more demanding experiments.
+
+Experiment 1:
+
+
+Experiment 1:
+
+
+Experiment 1:
+
+
+Experiment 1:
+
 
 \end{document} 
 
