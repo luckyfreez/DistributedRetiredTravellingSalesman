@@ -1,4 +1,4 @@
-\begin{thebibliography}{14}
+\begin{thebibliography}{17}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -28,12 +28,28 @@ Blaze, Matt, Feigenbaum, Joan, Ioannidis, John, and Keromytis, Angelos~D.
   pp.\  185--210. Springer-Verlag, London, UK, UK, 1999.
 \newblock ISBN 3-540-66130-1.
 
+\bibitem[Bradley et~al.(1977)Bradley, Hax, and Magnanti]{bradley1977applied}
+Bradley, S.P., Hax, A.C., and Magnanti, T.L.
+\newblock \emph{Applied mathematical programming}.
+\newblock Addison-Wesley Pub. Co., 1977.
+\newblock ISBN 9780201004649.
+
+\bibitem[Chinnek(2014)]{carleton}
+Chinnek, John.
+\newblock Practical optimization: A gentle introduction.
+\newblock Online Textbook, 2014.
+
 \bibitem[Christofides(1976)]{Chr76}
 Christofides, Nicos.
 \newblock Worst-case analysis of a new heuristic for the travelling salesman
   problem.
 \newblock Technical Report 388, Graduate School of Industrial Administration,
   Carnegie Mellon University, 1976.
+
+\bibitem[Clausen(1997)]{Clausen1997}
+Clausen, Jens.
+\newblock {Branch and bound algorithms-principles and examples}.
+\newblock \emph{Parallel Computing in Optimization}, pp.\  239--267, 1997.
 
 \bibitem[Dantzig(1963)]{GVK180926950}
 Dantzig, {George B.}

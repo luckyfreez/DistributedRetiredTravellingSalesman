@@ -12,7 +12,7 @@
 \usepackage{algorithmic}
 
 % Stuff that I added in (Daniel Seita) 
-\usepackage{amsmath,amssymb,amsthm,enumitem,verbatim}
+\usepackage{amsmath,amssymb,amsthm,enumitem,verbatim,url}
 \graphicspath{ {Images/} }
 \newtheorem{thm}{Theorem}[section]
 \newtheorem{conj}[thm]{Conjecture}
@@ -263,7 +263,7 @@ programming is, in fact, an NP-hard problem, and the binary case is NP-complete~
 method\footnote{The Simplex Method performs well in practice but its runtime has historically been difficult to evaluate, as in the worst case it
 \emph{can} run in exponential time~\cite{Klee1972}. The simplex algorithm has \emph{smoothed complexity} polynomial in the input size; for details
 about this, see~\cite{Spielman:2004:SAA:990308.990310}.} are used to solve linear programming problems. Note that simply taking a solution to the
-linear programming problem and then rounding it to form a ``solution'' to the integer problem will not work, as we show in Section~\ref{app:lin_vs_int}.
+linear programming problem and then rounding it to form a ``solution'' to the integer problem will not work, as we show in Appendix~\ref{app:lin_vs_int}.
 
 \subsubsection{Consecutive Flights in Different Cities}
 
@@ -273,20 +273,39 @@ choice of cities. It makes no sense, for instance, to have flights $f_i$ and $f_
 $f_{i+1}$ takes him or her from Paris to London.
 
 Unfortunately, fixing the flight ordering by adding in constraints is challenging and requires a large number of equations. Our implementation only
-adds in one layer of constraints for here, and defers a complete flight logic check to the code that actually generates the tree. Thus, we resolve
-this by just solving the problem as we would normally without the constraint, and then checking all proposed solutions for flight logic before
-accepting them.
+adds in one layer of constraints for here, and defers a complete flight logic check to the code that actually generates the tree. Specifically, for
+all pairs of days $t$ and cities $c$ such that $t \in \{1,2,\ldots, m-1\}$ and $c \in \{1,2,\ldots,n\}$ we add in the following constraints:
+\begin{align}
+\underbrace{\left(\sum_{i\ne c} x_{ict} \right)}_{\text{Term 1}} + \underbrace{\left( \sum_{j\ne c}\sum_{k\ne j} x_{jkt^+}\right)}_{\text{Term 2}} \le 1,
+\end{align}
+% TODO I think it still works for n+1 days but let me think about it and put stuff in the appendix.
 
-For more details about this, see Section~\ref{app:flight_logic}.
+where $t^+$ is shorthand for $t+1$ (which explains why we don't set $t$ to be $m$). Term 1 represents entering city $c$, and Term 2 represents leaving
+any city other than $c$. Notice that by our previous constraints, both Term 1 and Term 2 are already bounded by one, so if both are one, then this
+indicates that two flights on back-to-back days are not logically consistent. We therefore have the following lemma.
 
-{\bf TODO}
+\begin{lem}\label{lem:correctness}
+Assuming that we have $n$ cities and $n$ or $n+1$ days as input, solving the binary integer programming problem using the previous constraints will return a
+valid, logically consistent solution.
+\end{lem}
+
+The correctness of $n$ days in the flight schedule will force correctness in the case of $n+1$ days, but beyond that it is possible to get a logically
+invalid flight scheduling. We resolve that issue by not using constraints at all. We just run the problem and, each time a candidate solution is
+proposed, check its complete vector for logical consistency.  Thus, it is a ``last-minute'' check that must be passed before a complete assignment to
+the variables is accepted.
 
 \subsection{Using Balas' Additive Algorithm}\label{sec:balas}
 
-We will use this algorithm to solve Integer Programming. See~\cite{doi:10.1287/opre.13.4.517}.
+To actually solve the binary integer programming problem, we use Balas' Additive Algorithm~\cite{doi:10.1287/opre.13.4.517}. This is a special case of
+the larger class of branch-and-bound algorithms, which are used to solve integer programming problems. Branch-and-bound algorithms consist of a
+systematic enumeration of all candidate solutions, where large subsets of fruitless candidates are discarded by using upper and lower estimated bounds
+of the quantity being optimized~\cite{Clausen1997}.
 
-{\bf TODO}
-
+Balas' algorithm makes use of the special properties of binary integer programming problems. Assuming that the costs are all non-negative, and that
+variables are indexed according to cost, we want to (1) set all variables to zero in order to minimize total cost, and (2) if we cannot set all
+variables to zero due to constraints, then we wish to set the variable with smallest index to one. What results is a rooted tree where each path of
+$n$ nodes from the root indicates an assignment to the first $n$ variables. One can use a standard depth-first search to implement the algorithm.  For
+brevity we elide additional technical details of the algorithm and refer the reader to Appendix~\ref{app:balas}.
 
 
 
@@ -346,10 +365,11 @@ Section~\ref{sec:master_server}).
 The master server is the workhorse of our system. It takes in the user request sent in from the front-end server from
 Section~\ref{sec:front_end_server}. When a request comes in, the master sever runs a variety of checks and parses the input to make sure that the
 request is sound. For instance, given the optional argument where the user can specify the minimum number of days between flights, the server checks
-that the full date range is large enough to allow that case to happen. For the full list of checks we implement, see Section~\ref{app:input_check}. We
-do not catch all possible cases of possible pathological inputs, in part because it is challenging to do so in a command line argument, and also
-because we trust our users not to wreck the system. (There has been substantial research in the literature about trust management in systems, such
-as~\cite{Blaze:2001:RTM:380171.380186}; for now we eschew these details.)
+that the full date range is large enough to allow that case to happen. We do not catch all possible cases of possible pathological inputs, in part
+because it is challenging to do so in a command line argument, and also because we trust our users not to wreck the system. (There has been
+substantial research in the literature about trust management in systems, such as~\cite{Blaze:2001:RTM:380171.380186}; for now we eschew these
+details.)
+% TODO We can put an appendix in to describe our checks, but I'm getting tired of writing already.
 
 After parsing the input, the master sever has two important tasks. The first is that it needs to obtain the cheapest flight that goes from cities $i$
 to $j$ on day $t$ for all possible combinations of $i, j,$ and $t$ as specified by the user. It accomplishes this by calling the crawler server, also
@@ -397,8 +417,6 @@ time-consuming task of the full system.
 \subsection{Runtime Analysis}
 {\bf TODO}
 
-\subsection{Feasibility}
-{\bf TODO}
 
 
 \section{Limitations}\label{sec:limitations}
@@ -457,16 +475,30 @@ we could have a flight landing at the very end of day $t$ and the next flight de
 We do not have ways of facing this limitation in our system, but one possible idea is to treat time in one-hour units, rather than 24-hour units,
 giving us a finer grain of control. It is unclear how much this would complicate the rest of our constraints.
 
+\subsection{Requests Spanning Months and Years}
+
+We currently implement only a primitive form of date-checking in order to determine all the dates (in MM/DD/YY format) within a range and to tell
+whether two dates
+
 \subsection{One Ticket, Multiple Flights}
 
-One issue that currently seems outside the realm of our ability to solve is that even if we search for a direct flight route and find the cheapest
-ticket, it may still not be the cheapest way to actually get there. \textbf{TODO, need to confirm with Lucky...}
+One issue related to optimality is that even if we search for all possible direct flight combinations and find the cheapest collective route, it may
+still not be the best possible route. Consider a hypothetical situation where a user wants to travel to Boston, Chicago, London, and Beijing.
+Analyzing all pairwise combinations might result in the following route: Chicago to Boston, Boston to London, London to Beijing, then Beijing to
+Chicago.  Assume for simplicity that each flight costs \$500. But there might exist a flight from Chicago to London that, according to the Matrix
+Airfare Search, costs \$750, \emph{but makes a stop at Boston}, despite how the cheapest direct flight from Chicago to Boston costs \$500 (and
+similarly for Boston and London). In other words, a better route would be Chicago to London (making a stop at Boston), then London to Beijing, then
+Beijing to Chicago, which would cost \$1750, compared to the \$2000 route that our solution would provide. To resolve this, we are looking to expand
+our crawler so that it can detect the stopgap cities that are part of a single flight.
 
 \subsection{Web Crawler Issues}
 
-In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. It has one problem,
-though, which is that it can sometimes get stuck on a Matrix ITA page after searching the price for a flight. Typically, this happens when we have it
-running ``in the background''; bringing it back up to the foreground successfully makes it continue.
+In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. One problem, though, is
+that it sometimes gets stuck on a Matrix Airfare Search page after searching the price for a flight. Typically, this happens when we have it running
+``in the background''; bringing it back up to the foreground successfully makes it continue. There are also some problems with foreign currency units.
+For now, we assume that the person using this service will originate from the United States, which forces money to be in dollars. Finally, in rare
+cases there may be no flight found between two cities, though each time we ran into this problem, it was due to poorly formatted input.
+
 
 \section{Conclusion}\label{sec:conclusion}
 
@@ -515,39 +547,956 @@ design distributed systems, and Steven Miller, whose independent study provided 
 Outline of Supplementary Material:
 
 \begin{itemize}[noitemsep]
-    \item TODO
-    \item TODO
-    \item TODO
-    \item TODO
+    \item why solutions to linear and integer programming can differ enormously
+    \item a detailed discussion of our implementation of Balas' Additive Algorithm
+    \item additional experiments and examples that could not fit in the text
 \end{itemize}
 
+We deemed the first eight pages of this document sufficient for presenting our results. The supplementary material is for anyone who really wants to
+\emph{get} what we did, as we glossed over a few details for brevity.
 
 \section{Integer Programming versus Linear Programming}\label{app:lin_vs_int}
 
-Here, we should describe the interaction between integer and linear programming, and show why integer programming is harder and cannot be obtained by
-rounding from the linear solution. Our work, of course, is heavily influenced by~\cite{stevenmiller}.
+The Simplex method can usually solve linear programming problems quickly. Unfortunately, there is no efficient analogue of the Simplex method (or
+similar algorithms) to the case when all variables must be integers. To make matters worse, a problem can have optimal integral and linear solutions,
+but they may be extraordinarily different, so it is not sufficient to simply round, truncate, or investigate the ``relative area'' surrounding a
+linear programming solution. The following problem provides a concrete example and is based on the presentation of~\cite{stevenmiller}.
 
-{\bf TODO}
+\begin{prob}\label{prob:bin_vs_int}
+[The Knapsack Problem] Imagine we have a knapsack that can hold at most 100 kilograms. There are three items we can pack, each of which is worth some
+monetary amount per unit, and the goal is to carry as much value in the knapsack as possible. The first item weighs 51 kilograms and is worth \$150
+per unit. The second item weights 50 kilograms and is worth \$100 per unit. Finally, the third item also weighs 50 kilograms, but is worth \$99 per
+unit. If we let $x_1, x_2$ and $x_3$ represent the amount of the first, second, and third items, respectively, and we assume that we can't take on any
+negative quantity, the constraint for our problem is
+\begin{equation}
+51x_1 + 50x_2 + 50x_3 \le 100,
+\end{equation}
+and we want to maximize
+\begin{equation}
+150x_1 + 100x_2 + 99x_3.
+\end{equation}
+Before presenting the solution for both the integral and linear case, think about the relative ``bang of the buck'' for the items. The second and
+third items both weigh the same, but the second is worth a dollar more, so clearly, we prefer it to the third. The first weighs just a fraction more
+than the second (51 versus 50 kilograms), but is worth 50 percent more in dollars (\$150 to \$100), so clearly it's the best value item. If we allow
+all $x_j$ to be real numbers, the optimal answer is $x_1 = 100/51$ and $x_2 = x_3 = 0$; the value of the knapsack is about \$294.12. This makes sense,
+given our previous discussion. If we require all $x_j$ to be integers, however, the optimal solution is $x_2 = 2$ and $x_1 = x_3 = 0$. The value of
+the knapsack is \$200, significantly lower than the linear case since the 51 kilogram weight of the first item just makes it ineligible for us to have
+two of it.
+\end{prob}
 
-\section{Adding Constraints to Prevent Flight Logic Errors}\label{app:flight_logic}
+Incidentally, Problem~\ref{prob:bin_vs_int} demonstrates how, assuming the objective is maximization, the linear programming solution is an upper
+bound to the integer programming solution (and lower bound if the goal is to minimize something).
 
-Here, we should describe the constraints that we added in for flight logic. I only added in one layer of constraints.
+Another enlightening example of the difference between integer and linear programming is in Chapter 9 of~\cite{bradley1977applied}, which also
+demonstrates how the optimal linear and integral solutions can be arbitrarily far away from each other, in terms of distance in the plane or total
+cost.
 
-{\bf TODO}
 
+
+
+
+
+
+\newpage
 \section{Balas' Additive Algorithm}\label{app:balas}
 
-{\bf TODO}
+We briefly introduced Balas' Additive Algorithm in Section~\ref{sec:balas} for solving binary integer programming problems, and in this section we
+present a deeper treatment. Our presentation is heavily influenced by~\cite{carleton}.
 
-\section{Checking User Input}\label{app:input_check}
+\subsection{Canonical Form}
 
-We should describe the full list of checks we make, and see what might go wrong...
+Balas' algorithm first requires the input to be converted to canonical form, if it is not done so already. Letting the variables and their
+corresponding costs be $x_1, \ldots, x_n$ and $c_1, \ldots, c_n$, respectively, canonical form is when the following are satisfied:
 
-\section{Additional Experiments and Examples}\label{app:additional_experiments_and_examples}
+\begin{itemize}[noitemsep]
+    \item The objective function is to minimize $\sum_{j=1}^n c_jx_j$.
+    \item All objective function coefficients (i.e., variable costs) are non-negative. 
+    \item The $m$ constraints are all inequalities of the form $\sum_{j=1}^{n} a_{ij}x_j \ge b_i$ for $i \in \{1,2,\ldots,m\}$.
+    \item All variables are ordered according to their costs, so for $x_1, x_2, \ldots, x_n$, we have $0 \le c_1 \le c_2 \le \cdots \le c_n$. 
+\end{itemize}
 
-{\bf TODO}
+Incidentally, our code to solve Balas' algorithm \emph{does} include checking and conversion capability, which is necessary for some constraints, such
+as the one requiring at most one flight per day. We also order variables by cost, so any final vector of, say, $[1,0,0,1,0,0,1]$ means that we pick
+the three flights that correspond to the cheapest, fourth cheapest, and seventh cheapest (i.e., the most expensive one).
 
-% Daniel's stuff for experimentation. Do not include these in the final document.
+While it may seem like requiring the input to be in canonical form is a heavy restriction, in fact it is relatively simple to do the conversion.
+Ordering the constraints should not be challenging in an implementation, given enough debugging to ensure that indices and other aspects line up
+correctly. With a less than or equal bound in one of the constraints, we multiply through by $-1$. With negative cost coefficients, a change of
+variables is required, with transforming $x_i$ into $1-x_i'$. Finally, to handle equality constraints, we can transform the equality into two
+inequalities, similar to how we can convert $x=2$ to the equivalent condition of $x\le2$ and $x\ge2$ (and then we would subsequently change the first
+one to be $-x\ge2$).
+
+As we mention in the text, the idea of Balas' algorithm is that we want to assign as many variables to zero as possible since we know that
+coefficients are non-negative. In almost all cases, if we tried to do this at the start, we would violate one of the constraints. So the next step is
+to try and set the \emph{cheapest} variables to be one, because if we can satisfy the constraints, we prefer to do it with the cheapest variables
+possible.
+
+Our implementation follows a depth-first search algorithm to enumerate all possible solutions. In other words, we form a rooted tree where a path
+corresponds to some assignment of variables, and each node has two successors in the tree, corresponding to a selection of 0 or a selection of 1 for
+the current variable, where the ``current'' variable is determined by the level of the tree (i.e., the root node corresponds to an empty path
+$[\ldots]$\footnote{We use the ellipses as shorthand for ``the rest of the variables are unknown.''}, its two successors correspond to the paths of
+$[1, \ldots]$ and $[0, \ldots]$, and so on).
+
+But a word of caution --- if there are four cities and twenty days to travel, that means we have $4 \cdot 3 \cdot 10 = 120$ total variables, which
+means listing all solutions would mean we have $2^{120}$ leaf nodes. This is clearly impractical, and the hope is that Balas' algorithm can avoid
+searching the full space of solutions by using look-ahead and pruning techniques, which we now describe.
+
+\subsection{Cost and Feasibility Look-Ahead}\label{app:balas_lookahead}
+
+Suppose we are at a given node of the DFS tree with path $[x_1, x_2, \ldots, x_j, \ldots]$, so the first $j$ variables are assigned and the remaining
+$n-j$ variables are unknown. It is possible to ``look ahead'' in the tree to see if best-case (i.e., lowest-cost) scenarios are feasible. We can
+consider two cases for the value of $x_j$:
+
+\begin{itemize}[noitemsep]
+    \item Suppose $x_j = 1$. Then we need to check if the current path so far can lead to a best-cost solution. If we check the constraints, and find
+    that the assignment $\mathcal{X} = [x_1,x_2,\ldots,x_j=1, 0, 0, \ldots, 0]$ works (i.e., at least the last $n-j$ variables are zero), then we
+    compute the cost of $\mathcal{X}$ and compare it to the current best cost known. If $\mathcal{X}$ is better than the current best cost, then we
+    save its path and cost. Furthermore, \emph{there is no need to continue in this DFS branch}, because any further path must start with the first
+    $j$ assignments in $\mathcal{X}$, and any extra one is going to force a subsequent solution $\mathcal{X}'$ to be costlier than $\mathcal{X}$. This
+    is the power of knowing that the costs are ordered, and that each variable is binary. Without either of those assumptions, Balas' algorithm would
+    not work!
+    \item Now suppose $x_j = 0$. Here, it is important to assume that the assignment $\mathcal{X} = [x_1,x_2,\ldots,x_j=0,0,0,\ldots, 0]$ is
+    \emph{infeasible}. The reasoning is that if it were feasible, then we would not be in this node at all because then the previous node would have
+    already been feasible. Since we are assuming best-case costs each time, this means that the DFS would not have continued after the previous node
+    was expanded. Thus, we must assume $\mathcal{X}$ is infeasible. Then we set the \emph{next} variable $x_{j+1} = 1$, and then after that, check to
+    see if the solution $\mathcal{X}' = [x_1,x_2,\ldots,x_j=0,x_{j+1}=1,0,0,\ldots,0]$ is feasible. If it is, there is no need to expand this DFS
+    path any further.
+\end{itemize}
+
+As we will soon show, it is also important to be able to prune away impossible paths so that we do not need to do this ``cost look-ahead'' every time.
+
+\subsection{Pruning}
+
+We might have feasible solutions, but it is also important to be able to stop checking a DFS path if we can tell that its best-case flight route price
+is always going to be more expensive than the current best cost. Given a current path assignment $\mathcal{X} = [x_1,\ldots, x_j, \ldots]$, the way we
+do this is by analyzing each constraint one by one. The constraints are all of the form $\sum_{j=1}^{n} a_{ij}x_j \ge b_i$ for $i \in
+\{1,2,\ldots,m\}$. So the key is to determine the \emph{largest possible} value of the left hand side. If that value is still less than $b_i$, we can
+avoid expanding that path any further.
+
+To make the left hand side as large as possible, set each \emph{unknown} variable $x_i$ to be zero if its corresponding coefficient is negative, and
+one if otherwise. For example, if we had the assignment $[x_1=1, x_2=0, x_3, x_4]$ (where the last two are unknown) and a constraint $x_1 - 5x_2 +
+2x_3 -3x_4 \ge 4$, then knowing the first two values mean this constraint is immediately $1 + 2x_3 - 3x_4$. Set $x_3=1$ and $x_4=0$ and we get $1+2
+\not \ge 4$, so this can be pruned.
+
+\subsection{Our Implementation}
+
+Our implementation of the algorithm runs an iterative version of depth-first search, where each node contains information about its current path from
+the root to itself. We debated between depth-first search versus best-first search, but decided to do the former since best-first search would give
+priority early to paths that start with almost all zeros (and we want paths that start with a few ones and end with lots of zeros).
+
+An interesting detail about our code is that we actually view each node as having three successors in the tree. Given a current path $\mathcal{X} =
+[x_1, \ldots, x_j]$, we consider the three paths that result from appending $[1],[0,1],$ or $[0,0]$ to $\mathcal{X}$. We only run the cost look-ahead
+procedure (described in Appendix~\ref{app:balas_lookahead}) on the first two, because adding in a bunch of zeros to an infeasible assignment
+$\mathcal{X}$ cannot make it feasible. Remember, the whole reason why we are still expanding $\mathcal{X}$ is because best-case extensions of it
+(i.e., adding all zeroes, possibly after adding in a one to start) is not feasible! Our original implementation simply had two children, which were
+formed from appending $[0]$ and $[1]$. This was inefficient as it caused us to repeat certain trials. After making each node expand three children, we
+noticed that the depth-first search was expanding a little over \emph{half} as many nodes as before! Any small improvement we can make to this
+algorithm is imperative, given its general exponential-time complexity with respect to the number of cities and days.
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\section{Experiments on a Single Machine}\label{app:single_machine_experiment}
+
+In this section, we describe an in-depth demonstration of our system in action on one machine. The goal is to see how varying the parameters causes
+the solution to change (if it does), and to see how factors such as pruning and look-aheads affect the speed of our depth-first search. Be aware,
+though, that there is always a risk of experimenting with real flight data, because prices can change at any time\footnote{In fact, a week before
+finishing this paper, we ran an experiment in which the cost of one flight decreased by \$11 in between our trials, which was why we got such
+surprising results that day.}. To mitigate this risk, we run these experiments back-to-back. We also decided to use the busiest American
+airports~\footnote{\url{http://en.wikipedia.org/wiki/List\_of\_the\_busiest\_airports\_in\_the\_United\_States}} in our input to avoid any potential
+complications with missing flights on certain days. (Future work should improve our code's failure capabilities.)
+
+Specifically, we run our flight scheduler code with the following requests. First, we have the ones from Sections~\ref{app:first_flight_request}
+and~\ref{app:three_city}:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/03/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/04/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/10/2014 ATL ORD LAX}
+    \item \texttt{06/01/2014 06/11/2014 ATL ORD LAX}
+\end{itemize}
+
+Then we have the ones from Section~\ref{app:three-city-mindays}:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 3}
+\end{itemize}
+
+Finally, the three in Section~\ref{app:many-cities} are\footnote{The number of experiments is already quite high, so we basically used the last
+section to explore the limits of our solver.}:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX MIA}
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX MIA DFW}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX MIA DFW}
+\end{itemize}
+
+Notice that a four city, eight day request ran Balas' algorithm for \emph{several hours}, before we decided to quit it because it was slowing down,
+most likely due to eating up too much memory. It had $4\cdot 3\cdot 8 = 96$ variables, and we suspect that 100 is around the time when things start
+becoming infeasible (at least, on one machine with limited memory).
+
+We record the following quantities:
+
+\begin{itemize}[noitemsep]
+    \item The time it takes to search for the flight prices\footnote{As we mention in Section~\ref{sec:limitations}, sometimes our web crawler gets
+    stick on Matrix Airfare Search. We resolve this by simply leaving the Matrix Airfare Search webpage open at all times (i.e., we do not minimize it
+    or switch views to a different window).}
+    \item The time it takes to complete Balas' Additive Algorithm
+    \item The number of nodes expanded in the depth-first search (DFS) for Balas' algorithm
+    \item The number of pruning checks Balas' algorithm makes, as well as the number of successes
+    \item The number of times Balas' algorithm ``looks ahead'' by filling out a path and checking for feasibility and cost.
+    \item The number of flight logic errors due to either violating flight ordering, or violating the minimum number of days between flights
+    requirement.
+\end{itemize}
+
+These experiments as a whole therefore test the effect of adding more days, adding more cities, and adding in the extra constraint of the minimum
+number of days between cities. The goal is to gain insights about the feasibility of using our flight scheduler. Notice that the time it takes for the
+entire system to complete a request is almost entirely dependent on the flight lookup and Balas' algorithm.
+
+
+\subsection{The First Flight Request}\label{app:first_flight_request}
+
+In this section (and some subsequent ones) we print out part of the Master Server's output\footnote{This output could, theoretically, be part of the
+front-end that the user actually sees, but we decided that this is too much of an information overload for them, so we do not bother to do that.}.  We
+describe output for this first flight request in detail for explanatory purposes, and then we are more concise after this. Here, the input is:
+
+\begin{verbatim}
+06/01/2014 06/03/2014 ATL ORD LAX
+\end{verbatim}
+The output is:
+
+\footnotesize
+\begin{verbatim}
+Starting the problem! Here's our input:
+All dates: [06/01/2014, 06/02/2014, 06/03/2014]
+All cities: [ATL, ORD, LAX]
+
+Now checking flight prices...
+ATL->ORD on 06/01/2014, $315
+ATL->LAX on 06/01/2014, $261
+ORD->ATL on 06/01/2014, $315
+ORD->LAX on 06/01/2014, $253
+LAX->ATL on 06/01/2014, $278
+LAX->ORD on 06/01/2014, $204
+ATL->ORD on 06/02/2014, $210
+ATL->LAX on 06/02/2014, $201
+ORD->ATL on 06/02/2014, $210
+ORD->LAX on 06/02/2014, $253
+LAX->ATL on 06/02/2014, $201
+LAX->ORD on 06/02/2014, $174
+ATL->ORD on 06/03/2014, $190
+ATL->LAX on 06/03/2014, $172
+ORD->ATL on 06/03/2014, $190
+ORD->LAX on 06/03/2014, $154
+LAX->ATL on 06/03/2014, $171
+LAX->ORD on 06/03/2014, $154
+
+Now converting to an integer programming problem...
+Here is our power set of cities with at least 2 and 2 in the subsets: []
+Here are the problem inputs:
+
+The costs: [315, 261, 315, 253, 278, 204, 210, 201, 210, 253, 201,
+174, 190, 172, 190, 154, 171, 154], and the 15 constraints:
+
+[1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1]
+[0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1]
+[1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1]
+[0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1]
+[1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1]
+[0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1]
+[0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1]
+[0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1]
+[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1]
+[0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1]
+
+Now calling Balas' algorithm...
+
+Now doing the depth first search...
+
+Case 2 Update: Node #22, New cost: 642, 
+New path: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0]
+Case 1 Update: Node #87, New cost: 586, 
+New path: [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+
+Total nodes expanded: 174, total cost/feasibility look-aheads: 348
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 513, total successful: 340
+Best solution: [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], with cost 586
+
+Original problem from client was 06/01/2014 06/04/2014 ATL ORD LAX
+Flights ordered by cost:
+[ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210]
+Flights ordered by date:
+[LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210, ATL->LAX on 06/03/2014, $172]
+Flight check time in hours:minutes:milliseconds -- 0:2:31.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Let us discuss this output in more detail. The first part that prints out the date range and cities is essentially to confirm that the user's input is
+well-formed. Next, the Master Server prints the flight tickets for each flight as it gets them by querying the crawler server. (For small enough
+inputs, looking at these prices can serve as a useful sanity check to make sure that our code actually outputs the correct solution.) Next up, the
+Master Server prints something about a ``power set.'' This is to solve the disjoint cycle problem mentioned in Section~\ref{sec:disjoint_cycles}, and
+lists all the ways to partition the cities into groups. With three cities, this is a pointless exercise because every possible subdivision of three
+into two groups results in one grouping having either zero or one city, which is already covered by other constraints and thus is not problematic.
+
+Next, the Master Server prints out the costs and the constraints. The costs are straightforward and can be directly verified by the Master Server's
+printing of the flight information as they get discovered. The constraints are the interesting part. \emph{Most} of the numbers there correspond to
+coefficients. The exception are the last two numbers in each list. The penultimate number in each list follows a code where a zero indicates
+\emph{less than} and a one indicates \emph{greater than}\footnote{Technically, it might have been better to assign a minus-one to mean less than,
+since then we could just multiply everything by $-1$ to get a greater than. As it is, we do the multiplication by $-1$, but have to explicitly set the
+penultimate element of such a list to be 1.}. Finally, the last element in each list is the bound.
+
+With the constraints, we can then call Balas' algorithm. Periodically, the algorithm will find a working solution via ``look-aheads'' and those are
+the ``updates'' that are being printed out, along with the corresponding node, the cost, and the (complete) path. Cases 1 and 2 refer to when an
+update is found via a look-ahead that corresponds to appending a $[1]$ or a $[0,1]$ to the node's list, respectively. In this example, there was a
+valid flight route found to have cost \$642, but that was later bested by the \$586 solution.
+
+Finally, once the algorithm is finished, the server prints some concluding remarks and statistics. Most importantly, it prints out the best flight
+route, and its total cost. In the case of a simple three city, three day input, the best flight route costs \$586 and goes from Los Angeles to Chicago
+to Atlanta to Los Angeles. The total flight checking time took two minutes and thirty one seconds, and the run time of Balas' algorithm is negligible.
+The total number of nodes expanded is 174, which is a substantial savings over the $2^{18}$ complete possible enumerations of the flight vector. As
+expected, there are no flight logic errors caught (because those require more days than flights) and there are no ``minimum day'' errors because we
+did not specify any.
+
+\subsection{Additional Three-City, No Minimum Day Queries}\label{app:three_city}
+
+This section describes additional three-city outputs without any required minimum number of days between flights. We will be more concise than in
+Section~\ref{app:first_flight_request} and include just the information we deem essential. We also briefly comment on the output of each experiment.
+Recall that with the original request in Section~\ref{app:first_flight_request}, the best flight cost \$586 and corresponded to the route:
+
+\footnotesize
+\begin{verbatim}
+[LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/02/2014, $210, ATL->LAX on 06/03/2014, $172] 
+\end{verbatim}
+\normalsize
+
+So what happens when we add in an extra day? The following input:
+
+\begin{verbatim}
+06/01/2014 06/04/2014 ATL ORD LAX
+\end{verbatim}
+
+has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #26, New cost: 814, 
+New path: [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+Case 1 Update: Node #26, New cost: 777, 
+New path: [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0]
+Case 1 Update: Node #43, New cost: 761, 
+New path: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+Case 2 Update: Node #47, New cost: 721, 
+New path: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #51, New cost: 517, 
+New path: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #187, New cost: 505, 
+New path: [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Total nodes expanded: 717, total cost/feasibility look-aheads: 1434
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 2086, total successful: 1370
+Best solution: [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 505
+
+Original problem from client was 06/01/2014 06/04/2014 ATL ORD LAX
+Flights ordered by cost:
+[ORD->ATL on 06/04/2014, $150, LAX->ORD on 06/03/2014, $154, ATL->LAX on 06/02/2014, $201]
+Flights ordered by date:
+[ATL->LAX on 06/02/2014, $201, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/04/2014, $150]
+Flight check time in hours:minutes:milliseconds -- 0:4:1.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Interesting! Now the best flight route is in a completely different order on different days (June 2, 3, and 4 compared to June 1, 2, and 3), and costs
+\$505. This is a good sanity check, because unless our flight prices somehow changed between experiments, our new best price should clearly not be
+more expensive than \$586. So the current flight route to beat is:
+
+\footnotesize
+\begin{verbatim}
+[ATL->LAX on 06/02/2014, $201, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/04/2014, $150]
+\end{verbatim}
+\normalsize
+
+One more thing: the flight lookup time now takes just a second over four minutes, but Balas' algorithm \emph{still} runs in less than a second. Let's
+hope that is still the case when we add another day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/05/2014 ATL ORD LAX
+\end{verbatim}
+
+has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #32, New cost: 923, 
+New path: [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
+Case 2 Update: Node #49, New cost: 654, 
+New path: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #152, New cost: 650, 
+New path: [1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+Case 2 Update: Node #160, New cost: 458, 
+New path: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Total nodes expanded: 2845, total cost/feasibility look-aheads: 5690
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 8141, total successful: 5297
+Best solution:
+[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 458
+
+Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:4:23.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+We get \emph{another} improvement! This time, the cost went down to \$458, from a route that has flights on the third, fourth, and fifth.
+(Unsurprisingly, any route that improves on a previous one \emph{must} have one flight on the new day we just added.) Notice again that the runtime of
+the flight lookup is around four minutes, while Balas' algorithm takes negligible time.
+
+Let us add a day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/06/2014 ATL ORD LAX
+\end{verbatim}
+
+has output (note: we remove the full paths since they start to get long):
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #20, New cost: 1052, 
+Case 2 Update: Node #57, New cost: 827, 
+Case 2 Update: Node #137, New cost: 635, 
+Case 2 Update: Node #425, New cost: 622, 
+Case 2 Update: Node #447, New cost: 458, 
+Total nodes expanded: 10336, total cost/feasibility look-aheads: 20672
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 29293, total successful: 18958
+Best solution:
+[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+with cost 458
+
+Original problem from client was 06/01/2014 06/06/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:5:14.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Sadly, the streak of improvement was not to be. Despite adding in June 6 as a possible date, the cheapest flight was still the one that spanned June 3
+through June 5. On the positive side, flight checking time (five minutes) is still reasonable, especially for one machine. Balas' algorithm continues
+to be fast, though it is important to note that we're now expanding tens of thousands of nodes (10,336 in this case) and that will start to grow
+exponentially. Some more interesting observations are that (1) we continue to find most new paths by virtue of Case 2, which is not surprising because
+the data is generally sparse and most of the time, ones are preceded by zeros\footnote{If a vector is feasible and has consecutive ones, then there's
+a good chance it came from a Case 1 update.} and that (2) we still do not have any flight logic errors to catch, and that (3) pruning is successful
+for about two-thirds of the time, showing that it is very valuable to do so!
+
+With that aside, let us add in \emph{another} day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/07/2014 ATL ORD LAX
+\end{verbatim}
+
+has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #43, New cost: 1058, 
+Case 2 Update: Node #65, New cost: 789, 
+Case 2 Update: Node #188, New cost: 757, 
+Case 2 Update: Node #245, New cost: 603, 
+Case 2 Update: Node #1914, New cost: 590, 
+Case 1 Update: Node #2390, New cost: 458, 
+Total nodes expanded: 35902, total cost/feasibility look-aheads: 71802
+Total flight logic errors caught: 1, total min-days errors caught: 0
+Total pruning checks: 101007, total successful: 65107
+Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 458
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:6:3.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+We again see no improvement from the \$458 route discovered two cases ago. The number of nodes expanded is now at 35,902, but we can still run Balas'
+algorithm amazingly quickly. We also see our first-ever flight logic error!
+
+As usual, we continue by adding a day. The following input:
+
+\begin{verbatim}
+06/01/2014 06/08/2014 ATL ORD LAX
+\end{verbatim}
+
+has output:
+
+\scriptsize
+\begin{verbatim}
+Case 1 Update: Node #45, New cost: 1320, 
+Case 1 Update: Node #81, New cost: 1279, 
+Case 1 Update: Node #87, New cost: 1058, 
+Case 2 Update: Node #146, New cost: 789, 
+Case 2 Update: Node #472, New cost: 757, 
+Case 2 Update: Node #594, New cost: 603, 
+Case 2 Update: Node #6098, New cost: 590, 
+Case 1 Update: Node #7105, New cost: 458, 
+Total nodes expanded: 127570, total cost/feasibility look-aheads: 255138
+Total flight logic errors caught: 1, total min-days errors caught: 0
+Total pruning checks: 355251, total successful: 227683
+Best solution:
+[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+with cost 458
+
+Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:6:47.
+DFS search time in hours:minutes:milliseconds -- 0:0:1.
+\end{verbatim}
+\normalsize
+
+There is no change in the cheapest flight route, but of notice is that Balas' algorithm unfortunately takes about a second to run, with 127,570 nodes
+expanded.
+
+The following input (we're now approaching double-digit days...):
+
+\begin{verbatim}
+06/01/2014 06/09/2014 ATL ORD LAX
+\end{verbatim}
+
+has output:
+
+\scriptsize
+\begin{verbatim}
+Case 1 Update: Node #27, New cost: 1494, 
+Case 2 Update: Node #37, New cost: 1241, 
+Case 2 Update: Node #265, New cost: 1067, 
+Case 1 Update: Node #524, New cost: 1058, 
+Case 1 Update: Node #769, New cost: 789, 
+Case 2 Update: Node #1996, New cost: 757, 
+Case 2 Update: Node #2348, New cost: 603, 
+Case 2 Update: Node #22578, New cost: 590, 
+Case 1 Update: Node #26436, New cost: 458, 
+Total nodes expanded: 460872, total cost/feasibility look-aheads: 921722
+Total flight logic errors caught: 20, total min-days errors caught: 0
+Total pruning checks: 1280957, total successful: 820106
+Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 458
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:7:36.
+DFS search time in hours:minutes:milliseconds -- 0:0:8.
+\end{verbatim}
+\normalsize
+
+Unfortunately, we get no improvement and Balas' algorithm now takes eight seconds to complete. (Despite our attempts at efficiency, the algorithm
+\emph{is} exponential.) We now test on a ten-day range with three cities. The input:
+
+\begin{verbatim}
+06/01/2014 06/10/2014 ATL ORD LAX
+\end{verbatim}
+
+has output:
+
+\scriptsize
+\begin{verbatim}
+Case 2 Update: Node #30, New cost: 1633, 
+Case 2 Update: Node #41, New cost: 1380, 
+Case 2 Update: Node #171, New cost: 1206, 
+Case 1 Update: Node #408, New cost: 1132, 
+Case 2 Update: Node #752, New cost: 1052, 
+Case 1 Update: Node #1616, New cost: 946, 
+Case 1 Update: Node #5338, New cost: 871, 
+Case 1 Update: Node #7480, New cost: 728, 
+Case 1 Update: Node #13964, New cost: 603, 
+Case 1 Update: Node #37300, New cost: 597, 
+Case 2 Update: Node #58474, New cost: 580, 
+Case 2 Update: Node #76216, New cost: 447, 
+Total nodes expanded: 1472853, total cost/feasibility look-aheads: 2945504
+Total flight logic errors caught: 164, total min-days errors caught: 0
+Total pruning checks: 4076472, total successful: 2603784
+Best solution:
+[1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 447
+
+Original problem from client was 06/01/2014 06/10/2014 ATL ORD LAX
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/10/2014, $140, ATL->LAX on 06/03/2014, $172]
+Flights ordered by date: [ATL->LAX on 06/03/2014, $172, LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/10/2014, $140]
+Flight check time in hours:minutes:milliseconds -- 0:8:45.
+DFS search time in hours:minutes:milliseconds -- 0:0:32.
+\end{verbatim}
+\normalsize
+
+\emph{Yes!} We brought the flight down from \$458 to \$447 with a route that takes us to Los Angeles on June 3, to Chicago on June 4, and then has a
+layover until it sends us back to Atlanta on June 10. The key here was that extra flight price of \$140. Balas' algorithm goes from needing 8 seconds
+to needing 32 seconds as we now have to expand almost half a million nodes. We are starting to catch a good number of flight logic errors (164).
+
+Let us add in one more day. The following eleven-day request:
+
+\begin{verbatim}
+06/01/2014 06/11/2014 ATL ORD LAX
+\end{verbatim}
+
+has output:
+
+\scriptsize
+\begin{verbatim}
+Case 1 Update: Node #34, New cost: 1768, 
+Case 1 Update: Node #43, New cost: 1515, 
+Case 1 Update: Node #169, New cost: 1341, 
+Case 2 Update: Node #398, New cost: 1267, 
+Case 1 Update: Node #718, New cost: 1187, 
+Case 2 Update: Node #1624, New cost: 1081, 
+Case 1 Update: Node #5155, New cost: 1006, 
+Case 2 Update: Node #7416, New cost: 924, 
+Case 1 Update: Node #8646, New cost: 892, 
+Case 2 Update: Node #9058, New cost: 738, 
+Case 1 Update: Node #22751, New cost: 696, 
+Case 2 Update: Node #57677, New cost: 603, 
+Case 2 Update: Node #105804, New cost: 561, 
+Case 2 Update: Node #213543, New cost: 447, 
+Case 1 Update: Node #1152833, New cost: 446, 
+Total nodes expanded: 4609309, total cost/feasibility look-aheads: 9218304
+Total flight logic errors caught: 210, total min-days errors caught: 0
+Total pruning checks: 12706231, total successful: 8097133
+Best solution:
+[0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 446
+
+Original problem from client was 06/01/2014 06/11/2014 ATL ORD LAX
+Flights ordered by cost: [ORD->LAX on 06/11/2014, $135, ATL->ORD on 06/10/2014, $140, LAX->ATL on 06/03/2014, $171]
+Flights ordered by date: [LAX->ATL on 06/03/2014, $171, ATL->ORD on 06/10/2014, $140, ORD->LAX on 06/11/2014, $135]
+Flight check time in hours:minutes:milliseconds -- 0:9:22.
+DFS search time in hours:minutes:milliseconds -- 0:2:23.
+\end{verbatim}
+\normalsize
+
+A \emph{one dollar} improvement! That extra day really did make a difference.
+
+At this point, we will wrap up these experiments. Balas' Algorithm now takes almost two and a half minutes to run, and soon, it will be the limiting
+factor of our algorithm because the number of nodes to expand will be over ten million for the next iteration. Overall, we are extremely excited with
+these results.  The total runtime of a three-city, eleven day request (so $n(n-1)t = 66$ is still just over half a minute, and this is with using one
+computer! Twelve cities might take an hour; thirteen cities or more would probably take days.
+
+
+\subsection{Three-City Requests with Minimum Days}\label{app:three-city-mindays}
+
+Here, we describe some three-city requests \emph{with} minimum days enforced! We subdivide this into two parts. The first will show the output of the
+following requests:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/05/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/06/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 1}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 1}
+\end{itemize}
+
+And the second will show the output of requests with more than a day between flights:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{06/01/2014 06/07/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/08/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 2}
+    \item \texttt{06/01/2014 06/09/2014 ATL ORD LAX 3}
+\end{itemize}
+
+Of note is that our code can detect whether the minimum number of days parameter along with the dates is not sufficient. For instance, the code will
+immediately abort upon receiving this impossible request:
+
+\begin{verbatim}
+06/01/2014 06/04/2014 ATL ORD LAX 1
+\end{verbatim}
+
+For brevity, we will further reduce the amount of output shown for each experiment.
+
+\subsubsection{Three-City Requests with a One Day Gap}
+
+A quick note: you can actually tell the request we made because the code will output ``Original problem from client...''. So in this mini-section (and
+the next) we'll just refer to them as ``Experiment X.''
+
+Experiment 1:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 2855, total cost/feasibility look-aheads: 5704
+Total flight logic errors caught: 4, total min-days errors caught: 66
+Total pruning checks: 8159, total successful: 5309
+Best solution:
+[0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+with cost 566
+
+Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX 1
+Flights ordered by date: [ATL->LAX on 06/01/2014, $261, LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151]
+Flight check time in hours:minutes:milliseconds -- 0:4:23.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 2:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 10136, total cost/feasibility look-aheads: 20268
+Total flight logic errors caught: 2, total min-days errors caught: 148
+Total pruning checks: 28703, total successful: 18570
+Best solution: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 511
+
+Original problem from client was 06/01/2014 06/06/2014 ATL ORD LAX 1
+Flights ordered by date: [LAX->ORD on 06/02/2014, $174, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/06/2014, $187]
+Flight check time in hours:minutes:milliseconds -- 0:5:29.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 3:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 38613, total cost/feasibility look-aheads: 77218
+Total flight logic errors caught: 7, total min-days errors caught: 397
+Total pruning checks: 108270, total successful: 69665
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 482
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX 1
+Flights ordered by date: [LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/07/2014, $177]
+Flight check time in hours:minutes:milliseconds -- 0:6:7.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 4:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 125988, total cost/feasibility look-aheads: 251968
+Total flight logic errors caught: 7, total min-days errors caught: 1328
+Total pruning checks: 350909, total successful: 224929
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 482
+
+Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX 1
+Flights ordered by date: [LAX->ORD on 06/03/2014, $154, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/07/2014, $177]
+Flight check time in hours:minutes:milliseconds -- 0:6:41.
+DFS search time in hours:minutes:milliseconds -- 0:0:1.
+\end{verbatim}
+\normalsize
+
+Experiment 5:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 442564, total cost/feasibility look-aheads: 885088
+Total flight logic errors caught: 31, total min-days errors caught: 5026
+Total pruning checks: 1229775, total successful: 787243
+Best solution: [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 468
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 1
+Flights ordered by cost: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/07/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flights ordered by date: [LAX->ORD on 06/04/2014, $135, ORD->ATL on 06/07/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flight check time in hours:minutes:milliseconds -- 0:7:38.
+DFS search time in hours:minutes:milliseconds -- 0:0:8.
+\end{verbatim}
+\normalsize
+
+There are a number of things we can say about these results. The first is that the minimum number of days requirement is respected in all the
+solutions. Also, the total number of ``min-day errors'' caught becomes substantial as the date range increases, which is entirely as expected.  The
+number of errors caught is still much smaller than the number of nodes expanded, so it is unlikely that the extra ``pruning'' here (i.e., pruning in
+the sense that we discard solutions that violate the minimum days between flight) will result in a noticeable speedup compared to the same request
+without restriction on minimum number of days. Indeed, looking at the results for this same request but without the day restriction (see
+Section~\ref{app:three_city}), both of the nine day requests took eight seconds to go through Balas' algorithm.
+
+Overall, these results show that a user can customize his or her trip to some extent. We chose this customization because it made sense to allow the
+user to have the option to stay at cities for some minimum length of time. In fact, the lack of this feature this was the number one complaint of our
+flight system when we explained the basics of it to other Williams students.
+
+\subsubsection{Three-City Requests with Two and Three Day Gaps}
+
+Here, we show the output of experiments that involve two and three day gaps.
+
+Experiment 1:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 38217, total cost/feasibility look-aheads: 76432
+Total flight logic errors caught: 2, total min-days errors caught: 457
+Total pruning checks: 107555, total successful: 69341
+Best solution: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 526
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX 2
+Flights ordered by cost: [ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172, LAX->ORD on 06/01/2014, $204]
+Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172]
+Flight check time in hours:minutes:milliseconds -- 0:6:23.
+DFS search time in hours:minutes:milliseconds -- 0:0:0.
+\end{verbatim}
+\normalsize
+
+Experiment 2:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 125267, total cost/feasibility look-aheads: 250532
+Total flight logic errors caught: 1, total min-days errors caught: 1411
+Total pruning checks: 347973, total successful: 222708
+Best solution: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 526
+
+Original problem from client was 06/01/2014 06/08/2014 ATL ORD LAX 2
+Flights ordered by cost: [ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172, LAX->ORD on 06/01/2014, $204]
+Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/04/2014, $150, ATL->LAX on 06/07/2014, $172]
+Flight check time in hours:minutes:milliseconds -- 0:6:53.
+DFS search time in hours:minutes:milliseconds -- 0:0:1.
+\end{verbatim}
+\normalsize
+
+Experiment 3:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 442122, total cost/feasibility look-aheads: 884242
+Total flight logic errors caught: 2, total min-days errors caught: 5338
+Total pruning checks: 1221925, total successful: 779806
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 507
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 2
+Flights ordered by cost: [ORD->ATL on 06/05/2014, $151, LAX->ORD on 06/02/2014, $174, ATL->LAX on 06/09/2014, $182]
+Flights ordered by date: [LAX->ORD on 06/02/2014, $174, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flight check time in hours:minutes:milliseconds -- 0:7:53.
+DFS search time in hours:minutes:milliseconds -- 0:0:8.
+\end{verbatim}
+\normalsize
+
+Experiment 4:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 442412, total cost/feasibility look-aheads: 884822
+Total flight logic errors caught: 1, total min-days errors caught: 30005
+Total pruning checks: 1229465, total successful: 787055
+Best solution: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 537
+
+Original problem from client was 06/01/2014 06/09/2014 ATL ORD LAX 3
+Flights ordered by cost: [ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182, LAX->ORD on 06/01/2014, $204]
+Flights ordered by date: [LAX->ORD on 06/01/2014, $204, ORD->ATL on 06/05/2014, $151, ATL->LAX on 06/09/2014, $182]
+Flight check time in hours:minutes:milliseconds -- 0:7:48.
+DFS search time in hours:minutes:milliseconds -- 0:0:9.
+\end{verbatim}
+\normalsize
+
+Again, all the results here are logically correct and obey the minimum days.
+
+
+\subsection{At Least Four Cities}\label{app:many-cities}
+
+Here, we get into more demanding experiments, designed to test the limits of our computation. First, we run an experiment with the following as input:
+
+\begin{verbatim}
+06/01/2014 06/07/2014 ATL ORD LAX MIA
+\end{verbatim}
+
+This has $4 \cdot 3 \cdot 7 = 84$ variables, which already exceeds the 66 that were in the three city, eleven day request (which took more than two
+minutes to finish Balas' algorithm). The output is:
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 1548120, total cost/feasibility look-aheads: 3096204
+Total flight logic errors caught: 24, total min-days errors caught: 0
+Total pruning checks: 4598573, total successful: 3050478
+Best solution: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], with cost 583
+
+Original problem from client was 06/01/2014 06/07/2014 ATL ORD LAX MIA
+Flights ordered by cost:
+[LAX->ORD on 06/04/2014, $135, MIA->ATL on 06/06/2014, $137,
+ORD->MIA on 06/05/2014, $139, ATL->LAX on 06/07/2014, $172]
+
+Flights ordered by date:
+[LAX->ORD on 06/04/2014, $135, ORD->MIA on 06/05/2014, $139,
+MIA->ATL on 06/06/2014, $137, ATL->LAX on 06/07/2014, $172]
+
+Flight check time in hours:minutes:milliseconds -- 0:12:21.
+DFS search time in hours:minutes:milliseconds -- 0:0:45.
+\end{verbatim}
+\normalsize
+
+This only took 45 seconds to run, so it is not too bad. Unfortunately, adding in an eighth day resulted in our code getting stuck.
+
+Here is an example of a request with five cities and five days:
+
+
+\scriptsize
+\begin{verbatim}
+Total nodes expanded: 261089, total cost/feasibility look-aheads: 522178
+Total flight logic errors caught: 0, total min-days errors caught: 0
+Total pruning checks: 783093, total successful: 522005
+Best solution: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+with cost 719
+
+Original problem from client was 06/01/2014 06/05/2014 ATL ORD LAX MIA DFW
+
+Flights ordered by cost: [DFW->ORD on 06/04/2014, $84, LAX->DFW on 06/03/2014, $118,
+ORD->MIA on 06/05/2014, $139, MIA->ATL on 06/01/2014, $177, ATL->LAX on 06/02/2014, $201]
+
+Flights ordered by date: [MIA->ATL on 06/01/2014, $177, ATL->LAX on 06/02/2014, $201,
+LAX->DFW on 06/03/2014, $118, DFW->ORD on 06/04/2014, $84, ORD->MIA on 06/05/2014, $139]
+
+Flight check time in hours:minutes:milliseconds -- 0:14:14.
+DFS search time in hours:minutes:milliseconds -- 0:0:10.
+\end{verbatim}
+\normalsize
+
+So this was not too bad. Last but not least, an example with five cities and six days, which will have $5\cdot 4\cdot 5 = 100$ variables, the most we
+have had for any experiment in the Appendix.
+
+{\bf TODO Describe these results}
+
 
 \end{document} 
 

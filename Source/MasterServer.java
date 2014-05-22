@@ -122,7 +122,8 @@ public class MasterServer {
      * TODO What happens when we have (1) no flight between two cities on same day, or (2) time-out/hanging? Can we fix these?
      */
     public static void checkFlightPrices() {
-        Flight fPrevious = new Flight("", "", "");
+        //Flight fPrevious = new Flight("", "", "");
+        // TODO Sometimes checking flight prices will loop around and skip last part ... no idea what's going on with that.
         for (Flight f : flights) {
 
             System.out.println("idle server left" + idleSlaveServers.size());
@@ -136,7 +137,7 @@ public class MasterServer {
             System.out.println("new process is running. idle server left" + idleSlaveServers.size());
 
             System.out.println(f);
-            fPrevious = f;
+            //fPrevious = f;
         }
         // Wait till everything ends.
     }
