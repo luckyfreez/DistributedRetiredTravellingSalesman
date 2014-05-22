@@ -410,17 +410,17 @@ algorithm
 
 \section{Experiments and Results}\label{sec:experiments_results}
 
-We present a brief experimental analysis of our system. Due to space constraints, we only offer high-level descriptions here and defer complete
-results to Appendices.
+We present experimental results and analyze our system. Due to space constraints, we only offer limited descriptions.
+Appendix~\ref{app:single_machine_experiment} contains more complete results and includes additional statistics not discussed here.
 
 \subsection{Single-Node Experiments}\label{sec:single_experiment}
 
-We experiment with a variety of inputs on a single node, which means we only use one slave server. Table~\ref{tab:single-node} shows our results on
-twenty inputs. The inputs have \texttt{C}s, \texttt{D}s, and \texttt{G}s, denoting the number of cities, days, and gap days between flights (if any).
-The main concern is the runtime of our whole system. The ``F Time'' and ``B Time'' columns represent the time (minutes:seconds) to run the flight
-checker and Balas' algorithm, respectively. ``V'' represents the set of variables, and the ``Nodes'' column is how many nodes Balas' algorithm
-expanded. These values \emph{must be substantially smaller} than the full list of $2^{|V|}$ possible vector assignments. A more complete treatment of
-these experiments is in Appendix~\ref{app:single_machine_experiment}.
+We ran our system using a variety of inputs on a single node (i.e., crawler). Table~\ref{tab:single-node} shows our results on twenty inputs. The
+inputs have \texttt{C}s, \texttt{D}s, and \texttt{M}s, denoting the number of cities, days, and minimum days between flights (if any). The cities were
+Atlanta, Chicago, and Los Angeles. The main concern is the runtime of our whole system. The ``F Time'' and ``B Time'' columns represent the time
+(minutes:seconds) to look up flight prices and run Balas' algorithm, respectively. ``V'' represents the set of variables, and the ``Nodes'' column is
+how many nodes Balas' algorithm expands. In order to be used in practice, the number of nodes \emph{must be substantially smaller} than the full list
+of $2^{|V|}$ possible vector assignments.
 
 \begin{table}[t]
 \caption{Statistics of our single-crawler system.}
@@ -444,15 +444,15 @@ Input & $|V|$ & F Time & Nodes & B Time \\
 3C 9D    & 54  & 07:36 & 460872  & 0:08  \\
 3C 10D   & 60  & 08:45 & 1472853 & 0:32  \\
 3C 11D   & 66  & 09:22 & 4609309 & 2:23  \\
-3C 5D 1G & 30  & 04:23 & 2855    & 0:00  \\
-3C 6D 1G & 36  & 05:29 & 10136   & 0:00  \\
-3C 7D 1G & 42  & 06:07 & 38613   & 0:00  \\
-3C 8D 1G & 48  & 06:41 & 125988  & 0:01  \\
-3C 9D 1G & 54  & 07:38 & 442564  & 0:08  \\
-3C 7D 2G & 42  & 06:23 & 38217   & 0:00  \\
-3C 8D 2G & 48  & 06:53 & 125267  & 0:01  \\
-3C 9D 2G & 54  & 07:53 & 442122  & 0:08  \\
-3C 9D 3G & 54  & 07:48 & 442412  & 0:09  \\
+3C 5D 1M & 30  & 04:23 & 2855    & 0:00  \\
+3C 6D 1M & 36  & 05:29 & 10136   & 0:00  \\
+3C 7D 1M & 42  & 06:07 & 38613   & 0:00  \\
+3C 8D 1M & 48  & 06:41 & 125988  & 0:01  \\
+3C 9D 1M & 54  & 07:38 & 442564  & 0:08  \\
+3C 7D 2M & 42  & 06:23 & 38217   & 0:00  \\
+3C 8D 2M & 48  & 06:53 & 125267  & 0:01  \\
+3C 9D 2M & 54  & 07:53 & 442122  & 0:08  \\
+3C 9D 3M & 54  & 07:48 & 442412  & 0:09  \\
 4C 7D    & 84  & 12:21 & 1548120 & 0:45  \\
 \belowspace
 5C 5D    & 100 & 14:14 & 261089  & 0:10  \\
@@ -462,18 +462,54 @@ Input & $|V|$ & F Time & Nodes & B Time \\
 \end{small}
 \end{center}
 \vskip -0.1in
+%\vskip -0.3in
 \end{table}
 
-From the results, we see that flight time increases linearly and that Balas' algorithm increases exponentially (as expected). We tried running a three
-city, twelve day example, but Balas' algorithm continued for over three hours without getting anything done. It seems like once we start increasing
-the number of days and cities beyond what are shown in Table~\ref{tab:single-node}, Balas' algorithm will be the limiting factor of our algorithm.
+From the results, we see that in terms of $|V|$, flight time increases linearly but Balas' time increases exponentially (as expected). We tried
+running the following inputs: \texttt{3C 12D}, \texttt{4C 8D}, and \texttt{5C 7D}, but for each one, Balas' algorithm would continue for hours without
+making progress. Once we start increasing the number of days and cities beyond the rough values shown in Table~\ref{tab:single-node}, Balas' algorithm
+will be the limiting factor of our system.
 
 \subsection{Multi-Node Experiments}\label{sec:distributed_experiment}
 
-The goal now is to understand the impact of 
+The goal here is to understand the impact of adding in multiple crawler servers on the flight time. Ideally, the runtime of flight lookup should
+decrease linearly with respect to the number of threads. We can also gain insight about the threshold when Balas' algorithm starts becoming more
+expensive than flight checking (if it is not, just add more threads!). Table~\ref{tab:multiple-node} shows our results, which confirm our hypothesis.
+Thus, for even moderately large inputs, flight checking can be done relatively quickly, and extra effort should be devoted towards distributing Balas'
+algorithm, or finding another way to solve integer programming.
+
+\begin{table}[t]
+\caption{Our system with multiple crawlers.}
+\label{tab:multiple-node}
+\vskip 0.15in
+\begin{center}
+\begin{small}
+\begin{sc}
+\begin{tabular}{lcccc}
+\hline
+\abovespace\belowspace
+Input & Threads & F Time \\
+\hline
+\abovespace
+3C 12D & 1 & TODO \\
+3C 12D & 2 & TODO \\
+3C 12D & 3 & TODO \\
+3C 12D & 4 & TODO \\
+3C 12D & 5 & TODO \\
+\belowspace
+3C 12D & 6 & TODO \\
+\hline
+\end{tabular}
+\end{sc}
+\end{small}
+\end{center}
+\vskip -0.1in
+%\vskip -0.3in
+\end{table}
 
 
-\section{Limitations}\label{sec:limitations}
+
+\section{Assumptions and Limitations}\label{sec:limitations}
 % TODO We can cut out some of the limitations here because it's fairly long...
 
 This section addresses a number of issues briefly touched upon in Section~\ref{sec:int_prog_form} and other areas of this paper. We avoid discussing
@@ -482,31 +518,20 @@ city three times).
 
 \subsection{Practical Usage}
 
-One important question to consider is whether our system is practical for real-life use. Our experiments in Section~\ref{sec:experiments_results} show
-that it is doable for a small enough input. Ideally, the number of cities would be limited by four, maybe five (which seems reasonable for a trip),
-and the number of days bounded based on the number of cities. One of the key limiting factors in our algorithm is the length of the variable vector,
-or the number of flights we must consider. In particular, if the user requests a flight route involving $n$ cities over $t$ days, then the total
-number of days and flight combinations possible is $n(n-1)t$, which comes from picking one of $n$ cities to start from, one of the $n-1$ remaining
-cities to land to, and one of the $t$ days for this flight to occur. This is why the bound on the days should be considered in context with the number
-of cities; the fewer cities we have, the more days we can allow.
+An obvious question to consider is whether our system is practical for real-life use. The experiments in Section~\ref{sec:experiments_results} show
+that it is doable for a small enough variable vector. The values in Table~\ref{tab:single-node} are a good guideline as to what is acceptable, but
+keep in mind that those were done on just one machine. In a real ``business-like'' situation, this kind of algorithm would be distributed over
+hundreds of machines. Then again, it is unlikely that a real vacation would span, for instance, twenty cities over sixty days. As a general guideline,
+letting $n$ be the number of cities and $m$ be the number of days, we recommend bounding $n(n-1)m$, or the length of the variable vector, by 100.
 
-Our experience shows that if $n(n-1)t$ is bounded by 100, then the problem is generally doable (i.e., completes within a few hours).
-A bound of 100 is still prohibitive for an extensive travel trip. If someone wants to travel for a month's worth of days, say $t = 30$, then the
-minimum number of flights possible for our system would be $3\cdot 2\cdot 30 = 180$, already quite prohibitive. The situation gets massively worse as
-$n$ increases. To mitigate the effect of increasing the variable vector, we can easily distribute the flight lookup process. Specifically, if we have
-a period of 30 days in a request, it makes sense to utilize 30 machines and distribute all possible combinations of flights on day $t$ to be the
-responsibility of the $t^{\text{th}}$ machine.
-
-This will work well to lower the cost of flight lookup. Unfortunately, as that process runs quicker, Balas' Additive Algorithm will become the major
-time bottleneck. With a large variable vector, the depth-first search process can take prohibitively long since the number of paths needed to explore
-is exponential. One workaround for this would be to add in more constraints, so that we can prune more often, but unless the constraints are overly
-restrictive --- which defeats our objective of having the user supply minimal information --- the number of nodes to search will still grow quickly
-based on the vector length (i.e., $n(n-1)t$). Balas' Additive Algorithm can be distributed by assuming that the vector starts with a certain value and
-then assigning the algorithm to determine the rest of them. For instance, with four machines, we can have four computers each solve Balas' algorithm
-under the assumption that their vector start with $[0,0]$, $[0,1]$, $[1,0]$, and $[1,1]$, respectively.
-
-As this problem takes exponential time but can be sped up with enough machines, whether or not it can really be used in practice is an open question.
-Since our implementation is extremely raw but does work for small inputs, this gives us hope that future researchers can improve our system.
+To speed up the algorithm, we can easily distribute the flight lookup process (e.g., using multiple threads). Unfortunately, as that process runs
+quicker, Balas' algorithm will become the major time bottleneck. With a large variable vector, the depth-first search process takes prohibitively long
+since the number of paths to explore is exponential. One workaround would be to add in more constraints, so that we can prune more often, but unless
+the constraints are overly restrictive --- which defeats our objective of having the user supply minimal information --- the number of nodes to search
+will still grow quickly based on $n(n-1)m$. Balas' algorithm can be distributed by assuming that the vector starts with a certain value and then
+assigning the algorithm to determine the rest of them. For instance, with four machines, we can have four computers each solve Balas' algorithm under
+the assumption that their vectors start with $[0,0]$, $[0,1]$, $[1,0]$, and $[1,1]$, respectively. Due to the exponential time complexity of Balas'
+algorithm, this will not be a scalable solution, but may work if we limit the user to requesting ``reasonable'' flight routes.
 
 \subsection{One Flight a Day}
 
@@ -532,7 +557,8 @@ giving us a finer grain of control. It is unclear how much this would complicate
 \subsection{Requests Spanning Months and Years}
 
 We currently implement only a primitive form of date-checking in order to determine all the dates (in MM/DD/YY format) within a range and to tell
-whether two dates
+whether two dates are before or after each other. We are revising the code to use a more robust date library. To be safe, \emph{we recommend all
+requests to be contained within one month}.
 
 \subsection{One Ticket, Multiple Flights}
 
@@ -568,11 +594,10 @@ work.
     but many people do not know how to use those. Consequently, we could reach out to and would be much more comfortable with a streamlined website.
 \end{itemize}
 
-Related to the first item described above, improving the runtime of this algorithm will hopefully be a huge part of future work. This makes sense,
-because our algorithm should return ``correct'' flight routes, but the runtime can be prohibitive for even a moderate amount of cities and days.
-Striking the right balance between piling on constraints/limitations (decreases runtime, increases restrictiveness) and brute-force searching
-(increases runtime, decreases restrictiveness) seems to be the way to go to provide a system that allows the user to plan out a cheap trip without
-checking all possible flight routes.
+The most important overall goal moving forward should be to figure out how to improve the system's runtime.  While the algorithm will return
+``correct'' flight routes, the runtime can be prohibitive for even a moderate amount of cities and days.  Striking the right balance between piling on
+constraints/limitations (decreases runtime, increases restrictiveness) and brute-force searching (increases runtime, decreases restrictiveness) seems
+to be the way to go to provide a system that allows the user to plan out a cheap trip without checking all possible flight routes.
 
 \section*{Acknowledgments}
  
@@ -1267,7 +1292,7 @@ A \emph{one dollar} improvement! That extra day really did make a difference.
 
 At this point, we will wrap up these experiments. Balas' Algorithm now takes almost two and a half minutes to run, and soon, it will be the limiting
 factor of our algorithm because the number of nodes to expand will be over ten million for the next iteration. Overall, we are extremely excited with
-these results.  The total runtime of a three-city, eleven day request (so $n(n-1)t = 66)$ is still just over half a minute, and this is with using one
+these results.  The total runtime of a three-city, eleven day request (so $n(n-1)m = 66)$ is still just over half a minute, and this is with using one
 computer! Twelve cities might take an hour; thirteen cities or more would probably take days.
 
 
