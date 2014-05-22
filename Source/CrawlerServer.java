@@ -17,11 +17,11 @@ public class CrawlerServer {
 	//private static boolean idle;
 
     // Starts the server.
-	public static void startServer() {
+	public static void startServer(int port) {
 		try {
 			PropertyHandlerMapping phm = new PropertyHandlerMapping();
 			XmlRpcServer xmlRpcServer;
-			WebServer server = new WebServer(8001);
+			WebServer server = new WebServer(port);
 			xmlRpcServer = server.getXmlRpcServer();
 			phm.addHandler("crawlerServer", CrawlerServer.class);
 			xmlRpcServer.setHandlerMapping(phm);
@@ -43,7 +43,11 @@ public class CrawlerServer {
 
 	public static void main(String[] args) {
 
-		CrawlerServer.startServer();
+		int port = 8001;
+		if (args.length == 1) {
+      port = Integer.parseInt(args[0]);
+    }
+ 		CrawlerServer.startServer(port);
 		//CrawlerServer s = new CrawlerServer();
 		//System.out.println(s.checkPrice("BOS", "NYC", "05/29/2014")[0]);
 		/*

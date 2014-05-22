@@ -22,12 +22,17 @@ import org.apache.xmlrpc.XmlRpcException;
 public class MasterServer {
 
     public static ArrayList<Flight> flights = new ArrayList<Flight>();  // All possible flights 
-    private static String crawlerServerAddr = "";                       // Used to connect to crawler
-
+    public static HashSet<String> idleSlaveServers = new HashSet<String>();
+    public static String crawlerServerAddr = "";                       // Used to connect to crawler
 
     // Just gets the crawlerServer hostname and starts the master.
     public static void main(String[] args) {
-        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost");
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8001");
+        idleSlaveServers.add(crawlerServerAddr);
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
+        idleSlaveServers.add(crawlerServerAddr);
+        //crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
+        //idleSlaveServers.add(crawlerServerAddr);
         MasterServer.startServer();
     }
 
@@ -65,25 +70,49 @@ public class MasterServer {
     }
 
 
-    // Uses the crawler to check the price of a given flight
-    public static Object[] checkPrice(String from, String to, String depDate) {
-        XmlRpcClient client = getClient(crawlerServerAddr + ":8001");
+    private static class CheckPriceThread implements Runnable {
+        private Flight flight;
+        private String crawlerServerAddr;
+        private HashSet<String> idleSlaveServers;
 
-        Object[] params = new Object[3];
-        params[0] = from;
-        params[1] = to;
-        params[2] = depDate;
-
-        // Initialize the default price (Returning this in the end indicating that the search fails).
-        Object[] result = new Object[] { false, -1, "", "", "" };
-
-        try {
-            result = (Object[]) client.execute("crawlerServer.checkPrice", params);
-        } catch (Exception e) {
-            System.err.println("ERROR: MasterServer cannot get price for flight " +
-                    from + " -> " + to + " at " + depDate + "! Exception is " + e);
+        public CheckPriceThread(Flight flight, String crawlerServerAddr, HashSet<String> idleSlaveServers) {
+            this.flight = flight;
+            this.crawlerServerAddr = crawlerServerAddr;
+            this.idleSlaveServers = idleSlaveServers;
         }
-        return result;
+
+        // Uses the crawler to check the price of a given flight
+        public void run() {
+
+            XmlRpcClient client = getClient(crawlerServerAddr);
+
+            Object[] params = new Object[3];
+            params[0] = flight.from;
+            params[1] = flight.to;
+            params[2] = flight.depDate;
+
+            // Initialize the default price (Returning this in the end indicating that the search fails).
+            Object[] result = new Object[] { false, -1, "", "", "" };
+
+            try {
+                result = (Object[]) client.execute("crawlerServer.checkPrice", params);
+            } catch (Exception e) {
+                System.err.println("ERROR: MasterServer cannot get price for flight " +
+                    flight.from + " -> " + flight.to + " at " + flight.depDate + "! Exception is " + e);
+            }
+
+
+            if ((Boolean) result[0]) {
+                flight.price = Integer.parseInt((String) result[1]);
+            } else {
+                flight.price = 100000; // Need to get some value here just in case.
+            }
+
+            System.out.println("finish checking the flight price, the price is " + flight.price);
+            idleSlaveServers.add(crawlerServerAddr);
+            System.out.println("idleSlaveServers:" + idleSlaveServers.size());
+            return;
+        }
     }
 
 
@@ -93,15 +122,23 @@ public class MasterServer {
      * TODO What happens when we have (1) no flight between two cities on same day, or (2) time-out/hanging? Can we fix these?
      */
     public static void checkFlightPrices() {
+        Flight fPrevious = new Flight("", "", "");
         for (Flight f : flights) {
-            Object[] queryResult = checkPrice(f.from, f.to, f.depDate);
-            if ((Boolean) queryResult[0]) {
-                f.price = Integer.parseInt((String) queryResult[1]);
-            } else {
-                f.price = 100000; // Need to get some value here just in case.
-            }
+
+            System.out.println("idle server left" + idleSlaveServers.size());
+            // Wait till we find an idle slave server.
+            while (idleSlaveServers.isEmpty()) { try {Thread.sleep(100);} catch (Exception e) {} }// System.out.println("In loop, last flight: " + fPrevious);}
+
+            String crawlerServerAddr = idleSlaveServers.iterator().next();
+            idleSlaveServers.remove(crawlerServerAddr);
+            Runnable checkPrice = new CheckPriceThread(f, crawlerServerAddr, idleSlaveServers);
+            new Thread(checkPrice).start();
+            System.out.println("new process is running. idle server left" + idleSlaveServers.size());
+
             System.out.println(f);
+            fPrevious = f;
         }
+        // Wait till everything ends.
     }
 
 
