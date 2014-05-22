@@ -6,6 +6,7 @@
 
 import java.util.*;
 import java.lang.*;
+import java.text.*;
 
 // Import for client
 import java.net.URL;
@@ -395,6 +396,40 @@ public class MasterServer {
      }
 
 
+    /**
+     * NEW! We'll use the Java Date and Calendar libraries to help us out with parsing dates. First, we check
+     * to make sure end date is after the start date. Then find the full date range between the two.
+     */
+    public static String[] obtainDates(String start, String end) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        List<String> datesList = new ArrayList<String>();
+
+        try {
+            Date date1 = sdf.parse(start);
+            Date date2 = sdf.parse(end);
+            if (date1.after(date2)) {
+                System.out.println("Error: the ending date happens before the starting date.");
+                System.exit(-1);
+            }
+            String date = start;
+            datesList.add(date);
+            while (!date.equals(end)) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(sdf.parse(date));
+                c.add(Calendar.DATE, 1);
+                date = sdf.format(c.getTime());
+                datesList.add(date);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        String[] datesArray = new String[datesList.size()];
+        datesArray = datesList.toArray(datesArray);
+        return datesArray;
+    }
+
+
     /*
      * Important method! This is what the client will call, and the server uses it to solve the problem
      * It's split into a lot of stages so that it's clear what's going on. And filled with helpful prints.
@@ -408,8 +443,12 @@ public class MasterServer {
         int numInputs = input.length;
         String startDate = input[0];
         String endDate = input[1];
-        Dates d = new Dates(startDate, endDate);
-        String[] dates = d.obtainDates();
+        // Dates d = new Dates(startDate, endDate);
+        // String[] dates = d.obtainDates();
+        String[] dates = obtainDates(startDate, endDate);
+
+        System.out.println("All dates: " + Arrays.toString(dates));
+        System.exit(-1);
 
         // Check for the last optional argument to see if it's an integer
         String lastInput = input[numInputs-1];
