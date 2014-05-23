@@ -13,7 +13,9 @@ as you wish.  For obvious reasons, you must have the address of at least one sla
 8000, it is logical to start the slave servers at 8001 and up. For instance, if the configuration file consists entirely of the following three lines:
 
 http://localhost:8001
+
 http://localhost:8002
+
 http://localhost:8003
 
 Then this will cause the master (when it get started) to start three new threads for price checking, all on the current machine. We recommend keeping
