@@ -82,7 +82,7 @@ We use \textbf{binary integer programming} to help us solve Retired TSP.
 \end{itemize}
 
 \pause
-Here is how we \textbf{formulated} Retired TSP as a binary IP problem:
+Here is how we formulated Retired TSP as a binary IP problem:
 
 \begin{itemize}
     \item Let $c_{ijt}$ denote the \emph{minimum cost} of flying from city $i$ to $j$ on day $t$.
@@ -149,34 +149,42 @@ Problem 2: Doesn't prevent logistical impossibilities!
 Our implementation:
 
 \begin{itemize}
-    \item We have a master server that sets up and calls everything (uses \textbf{xmlrpc}!)
-    \item We have a web crawler that crawls \textbf{Matrix Airfare Search} to obtain prices
-    \item We have a slave server that gets called by the master, and then uses the web crawler to obtain prices.
-    \item The algorithm to solve binary IP is \textbf{Balas' Additive Algorithm}. Basic idea: depth-first search of all possible variable assignments
-with pruning and look-aheads to avoid searching ``impossible'' solutions.
+    \item We have a client where users can input a flight request (designed for ``ignorant masses'')
+    \pause
+    \item We have a master server that takes in user input and distributes requests to slaves
+    \pause
+    \item Each slave server is a web crawler that crawls \textbf{Matrix Airfare Search} to obtain prices
+    \pause
+    \item Once all prices are known, then the master server uses \textbf{Balas' Additive Algorithm} to solve binary IP problem. Basic idea:
+    depth-first search of all possible variable assignments with pruning and look-aheads to avoid searching impossible solutions.
 \end{itemize}
-Let's do a 3 city, 3 day demonstration!
+\end{frame}
+
+\begin{frame}
+Let's do a five city, six day demonstration! The request:
+\begin{center}
+{\large 06/20/2014 06/25/2014 ATL ORD LAX MIA DFW}
+\end{center}
 \end{frame}
 
 \subsection{Results and Thoughts}
 
 \begin{frame}
 \begin{itemize}
-    \item We ran it on an example with 4 cities over the span of 6 possible travel days. This means $4 \cdot 3 \cdot 6 = 72$ total variables $X_{ijt}$.
-    \item Our solution worked and it analyzed 73,976 nodes in the DFS tree, rather than the full $2^{72}$ set of solutions.
-    \item Took just about 10 minutes, and price-checking took almost all the time.
-    \item This is still an exponential time solution in general, but \textbf{much} faster than brute force.
+    \item In general, our solutions work. We have never found an incorrect or suboptimal route by looking at other combinations.
+    \item Five city, six day example expands around 2 million nodes, much smaller than the full $2^{120}$ set of possible vectors.
+    \item Biggest limiting factor is still Balas' algorithm (might be able to distribute)
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-Still a number of things to do before May 23:
+Future work:
 \begin{itemize}
-    \item \textbf{Distribute price checking} (e.g., using PlanetLab)
-    \item Evaluate speed and practical usefulness
+    \item Distribute Balas' algorithm or use heuristics (e.g., automatically eliminate some flights earlier)
+    \item Evaluate speed and practical usefulness in more detail
     \item Expand to get multiple flights for one ticket
-    \item Make a front-end server for the ignorant masses
-    \item Finish paper: 8 pages overview, 15 pages of dense, technical details
+    \item Make a front-end website for the ignorant masses
+    \item Polish paper: 8 pages overview, 14 pages of dense details
 \end{itemize}
 \end{frame}
 
