@@ -7,6 +7,7 @@
 import java.util.*;
 import java.lang.*;
 import java.text.*;
+import java.io.*;
 
 // Import for client
 import java.net.URL;
@@ -28,9 +29,29 @@ public class MasterServer {
 
     // Just gets the crawlerServer hostname and starts the master. NEW: now we have multiple servers!
     public static void main(String[] args) {
+        try {
+            BufferedReader configReader = new BufferedReader(new FileReader("slave.conf"));
+            String line;
+
+            while ((line = configReader.readLine()) != null) {
+                System.out.println("line - " + line);
+                idleSlaveServers.add(line);
+            }
+            configReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("slave.conf not found - Exiting.");
+            System.exit(0);
+        } catch (IOException e) {
+            System.out.println("Error reading from slave.conf - Exiting.");
+            System.exit(0);
+        }
+        System.out.println(idleSlaveServers.iterator().next());
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8001");
+        System.out.println(crawlerServerAddr);
+
+        /*
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8001");
         idleSlaveServers.add(crawlerServerAddr);
-        /*
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
         idleSlaveServers.add(crawlerServerAddr);
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8003");
@@ -474,8 +495,6 @@ public class MasterServer {
         System.out.println("\nNow checking flight prices...");
         checkFlightPrices();
         String flightCheckTime = computeTime(System.currentTimeMillis() - startTime);
-        System.out.println("Flight check time in hours:minutes:seconds -- " + flightCheckTime + ".");
-        System.exit(-1);
 
         // Now set up the IP problem based on the list of flights (need to get inputs)
         System.out.println("\nNow converting to an integer programming problem...");
