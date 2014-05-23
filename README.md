@@ -23,12 +23,12 @@ machines.
 (4) Next, let us actually start up all the slave servers. To do this, open new windows or tabs on the command lines and start up each slave server
 with the following command:
 
-java -cp .:lib/xmlrpc-3.1.3/*:lib/* CrawlerServer PORTNUM
+java -cp .:lib/xmlrpc-3.1.3/*:lib/* CrawlerServer PORT_NUM
 
-Where PORTNUM should be replaced with the appropriate port number.
+Where PORT_NUM should be replaced with the appropriate port number.
 
 (5) Next, we must start the Master Server. Type "make run_master_print" (we have a version that does not print, but we recommend you always use the
-one that prints extra information). The master server runs on port 8000. You are free to change it, of course, but we recommend sticking with the
+one that prints extra information). The master server runs on port 8000. You are free to change it in the code, of course, but we recommend sticking with the
 default.
 
 (6) Once the master is running (and the slave servers all have Firefox open), type in "python Client.py" on the command line, and you will receive
