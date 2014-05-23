@@ -473,9 +473,10 @@ will be the limiting factor of our system.
 \subsection{Multi-Node Experiments}\label{sec:distributed_experiment}
 
 The goal here is to understand the impact of adding in multiple crawler servers on the flight time. Ideally, the runtime of flight lookup should
-decrease linearly with respect to the number of threads. We can also gain insight about the threshold when Balas' algorithm starts becoming more
-expensive than flight checking by comparing the runtime of the same request on different number of crawler servers. And if Balas' algorithm is not the
-limiting factor of the algorithm, we can always add more threads.
+decrease with respect to the number of threads, but each thread added results in a relatively smaller decrease in time (i.e., diminishing returns). We
+can also gain insight about the threshold when Balas' algorithm starts becoming more expensive than flight checking by comparing the runtime of the
+same request on different number of crawler servers. And if Balas' algorithm is not the limiting factor of the algorithm, we can always add more
+threads.
 
 Table~\ref{tab:multiple-node} shows our results (times are in mintes:seconds format), which confirm our hypothesis.  Thus, for even moderately large
 inputs, flight checking can be done relatively quickly, and extra effort should be devoted towards distributing Balas' algorithm, or finding another
