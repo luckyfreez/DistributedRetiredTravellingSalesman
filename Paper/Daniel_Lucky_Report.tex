@@ -398,7 +398,7 @@ number is arbitrary).
 To look up the prices, we implemented a web crawler that extracts prices from the Matrix Airfare Search\footnote{\url{http://matrix.itasoftware.com/}}
 database, which is powered by ITA Software and is the best flight database currently available. This induces a natural delay in searching for flights
 because the website must be loaded each time for a search, so for small inputs, the flight lookup process is typically much slower than Balas'
-algorithm
+algorithm.
 
 % TODO This is not really correct.
 % We have a group of slave servers that listens to the command of the master server and does the distributed tasks of flight price querying (using the
@@ -474,9 +474,12 @@ will be the limiting factor of our system.
 
 The goal here is to understand the impact of adding in multiple crawler servers on the flight time. Ideally, the runtime of flight lookup should
 decrease linearly with respect to the number of threads. We can also gain insight about the threshold when Balas' algorithm starts becoming more
-expensive than flight checking (if it is not, just add more threads!). Table~\ref{tab:multiple-node} shows our results, which confirm our hypothesis.
-Thus, for even moderately large inputs, flight checking can be done relatively quickly, and extra effort should be devoted towards distributing Balas'
-algorithm, or finding another way to solve integer programming.
+expensive than flight checking by comparing the runtime of the same request on different number of crawler servers. And if Balas' algorithm is not the
+limiting factor of the algorithm, we can always add more threads.
+
+Table~\ref{tab:multiple-node} shows our results (times are in mintes:seconds format), which confirm our hypothesis.  Thus, for even moderately large
+inputs, flight checking can be done relatively quickly, and extra effort should be devoted towards distributing Balas' algorithm, or finding another
+way to solve integer programming.
 
 \begin{table}[t]
 \caption{Our system with multiple crawlers.}
@@ -492,12 +495,12 @@ Input & Threads & F Time \\
 \hline
 \abovespace
 3C 12D & 1 & TODO \\
-3C 12D & 2 & TODO \\
-3C 12D & 3 & TODO \\
-3C 12D & 4 & TODO \\
-3C 12D & 5 & TODO \\
+3C 12D & 2 & 05:01 \\
+3C 12D & 3 & 03:20 \\
+3C 12D & 4 & 02:38 \\
+3C 12D & 5 & 02:09 \\
 \belowspace
-3C 12D & 6 & TODO \\
+3C 12D & 6 & 01:51 \\
 \hline
 \end{tabular}
 \end{sc}
@@ -554,12 +557,6 @@ we could have a flight landing at the very end of day $t$ and the next flight de
 We do not have ways of facing this limitation in our system, but one possible idea is to treat time in one-hour units, rather than 24-hour units,
 giving us a finer grain of control. It is unclear how much this would complicate the rest of our constraints.
 
-\subsection{Requests Spanning Months and Years}
-
-We currently implement only a primitive form of date-checking in order to determine all the dates (in MM/DD/YY format) within a range and to tell
-whether two dates are before or after each other. We are revising the code to use a more robust date library. To be safe, \emph{we recommend all
-requests to be contained within one month}.
-
 \subsection{One Ticket, Multiple Flights}
 
 One issue related to optimality is that even if we search for all possible direct flight combinations and find the cheapest collective route, it may
@@ -575,9 +572,10 @@ our crawler so that it can detect the stopgap cities that are part of a single f
 
 In general, our crawler is safe enough that we are confident in running it and only periodically checking back on its results. One problem, though, is
 that it sometimes gets stuck on a Matrix Airfare Search page after searching the price for a flight. Typically, this happens when we have it running
-``in the background''; bringing it back up to the foreground successfully makes it continue. There are also some problems with foreign currency units.
-For now, we assume that the person using this service will originate from the United States, which forces money to be in dollars. Finally, in rare
-cases there may be no flight found between two cities, though each time we ran into this problem, it was due to poorly formatted input.
+``in the background'' (in OS X, this problem can happen when one switches between windows --- we have not tested on other operating systems); bringing
+it back up to the foreground successfully makes it continue. There are also some problems with foreign currency units.  For now, we assume that the
+person using this service will originate from the United States, which forces money to be in dollars. Finally, in rare cases there may be no flight
+found between two cities, though each time we ran into this problem, it was due to poorly formatted input.
 
 
 \section{Conclusion}\label{sec:conclusion}
@@ -595,9 +593,11 @@ work.
 \end{itemize}
 
 The most important overall goal moving forward should be to figure out how to improve the system's runtime.  While the algorithm will return
-``correct'' flight routes, the runtime can be prohibitive for even a moderate amount of cities and days.  Striking the right balance between piling on
-constraints/limitations (decreases runtime, increases restrictiveness) and brute-force searching (increases runtime, decreases restrictiveness) seems
-to be the way to go to provide a system that allows the user to plan out a cheap trip without checking all possible flight routes.
+``correct'' flight routes, the runtime can be prohibitive for even a moderate amount of cities and days.  This can be mitigated by distributing price
+lookups and \emph{especially} distributing Balas' algorithm, but the latter will continue to be a major time bottleneck. Striking the right balance
+between piling on constraints/limitations (decreases runtime, increases restrictiveness) and brute-force searching (increases runtime, decreases
+restrictiveness) seems to be the way to go to provide a system that allows the user to plan out a cheap trip without checking all possible flight
+routes.
 
 \section*{Acknowledgments}
  

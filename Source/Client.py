@@ -25,10 +25,10 @@ print "\n*************************** DANIEL AND LUCKY'S FLIGHT SCHEDULER *******
 print "Instructions: find a series of flights by listing the start date, end date, and cities."
 print ""
 print "Specific formatting requirements:\n\t(1) Start and end dates must be the first and second arguments, respectively\
-        \n\t(2) Separate all arguments by at least one whitespace\n\t(3) Use MM/DD/YYYY format for dates\
+        \n\t(2) Separate all arguments by at least one whitespace\n\t(3) Use MM/DD/YYYY format for dates (including leading zeros!)\
         \n\t(4) Spell city names (or 3-letter abbreviation) correctly\n\t(5) Use at least three cities"
 print ""
-print "Example request: \"06/11/2014 06/16/2014 CHI BOS SEA\""
+print "Example request: \"06/11/2014 06/16/2014 ORD BOS SEA\""
 print "This searches flights from June 11 to 16 (in 2014) that touch Chicago, Boston, and Seattle."
 print "\nOptional extensions to add at the end of the request:\
         \n\t(1) Put a number to indicate the minimum days between flights"

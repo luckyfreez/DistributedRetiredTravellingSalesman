@@ -30,6 +30,7 @@ public class MasterServer {
     public static void main(String[] args) {
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8001");
         idleSlaveServers.add(crawlerServerAddr);
+        /*
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8002");
         idleSlaveServers.add(crawlerServerAddr);
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8003");
@@ -38,6 +39,9 @@ public class MasterServer {
         idleSlaveServers.add(crawlerServerAddr);
         crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8005");
         idleSlaveServers.add(crawlerServerAddr);
+        crawlerServerAddr = "http://" + ((args.length > 0) ? args[0] : "localhost" + ":8006");
+        idleSlaveServers.add(crawlerServerAddr);
+        */
         MasterServer.startServer();
     }
 
@@ -443,12 +447,7 @@ public class MasterServer {
         int numInputs = input.length;
         String startDate = input[0];
         String endDate = input[1];
-        // Dates d = new Dates(startDate, endDate);
-        // String[] dates = d.obtainDates();
         String[] dates = obtainDates(startDate, endDate);
-
-        System.out.println("All dates: " + Arrays.toString(dates));
-        System.exit(-1);
 
         // Check for the last optional argument to see if it's an integer
         String lastInput = input[numInputs-1];
@@ -475,6 +474,8 @@ public class MasterServer {
         System.out.println("\nNow checking flight prices...");
         checkFlightPrices();
         String flightCheckTime = computeTime(System.currentTimeMillis() - startTime);
+        System.out.println("Flight check time in hours:minutes:seconds -- " + flightCheckTime + ".");
+        System.exit(-1);
 
         // Now set up the IP problem based on the list of flights (need to get inputs)
         System.out.println("\nNow converting to an integer programming problem...");

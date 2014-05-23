@@ -2,10 +2,10 @@
  * This code takes in the linear programming problem as input and will output a solution using Balas' Additive Algorithm
  * (c) May 2014 by Daniel Seita
  * NOTE: To make things easy, we really should convert this stuff to canonical form BEFORE it gets inputted...
- * TODO I need to test for flight logic!
  */
 
 import java.util.*;
+import java.text.*;
 
 public class Balas {
 
@@ -304,10 +304,40 @@ public class Balas {
 
 
     /**
+     * NEW! We'll use the Java Date and Calendar libraries to help us out with parsing dates. First, we check that
+     * the end date is after the start date. Then find the NUMBER of dates BETWEEN start and end (min days logic)
+     */
+    public static int num_dates_between(String start, String end) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        List<String> datesList = new ArrayList<String>();
+
+        try {
+            Date date1 = sdf.parse(start);
+            Date date2 = sdf.parse(end);
+            if (date1.after(date2)) {
+                System.out.println("Error: the ending date happens before the starting date.");
+                System.exit(-1);
+            }
+            String date = start;
+            while (!date.equals(end)) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(sdf.parse(date));
+                c.add(Calendar.DATE, 1);
+                date = sdf.format(c.getTime());
+                datesList.add(date);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return datesList.size() - 1; // Because we added in the ending date
+    }
+
+
+    /**
      * Return TRUE if min days between flights is satisfied, false if otherwise.
      * Again, 'path' may end in a 0, which implies it's case 2 where we need to add another flight at the end
      * There are a lot of similarities between this method and check_flight_logic, could consider merging them
-     * TODO Again this kind of assumes we're at the same year AND the same month ... should expand to improve dates
+     * NEW! We have the Date class to make sure we  are very precise.
      */
     public static boolean min_days_btwn_flights_logic(List<Integer> path, int[] variable_ordering) {
         List<Flight> current_flights = new ArrayList<Flight>(); // Current flights listed in order of cost
@@ -322,24 +352,15 @@ public class Balas {
             current_flights.add(flights.get(flight_index));
         }
 
-        // Next, order the flights by date. Thank goodness Flight class implements comparable!! (Good thinking, huh ;-) ?)
         Collections.sort(current_flights);
-        // System.out.println("Checking min flight btwn days with flight list " + current_flights);
 
-        // Now we have a list of complete flights in order. Let's check their logic (don't need to check last)
+        // Now we have a list of complete flights IN ORDER. Let's check their logic (don't need to check last)
         for (int i = 0; i < current_flights.size()-1; i++) {
             Flight first_flight = current_flights.get(i);
             Flight second_flight = current_flights.get(i+1);
-            String[] first_date = first_flight.depDate.split("/");
-            String[] second_date = second_flight.depDate.split("/");
-            if (first_date[2].equals(second_date[2]) && first_date[0].equals(second_date[0])) {
-                int day1 = Integer.parseInt(first_date[1]);
-                int day2 = Integer.parseInt(second_date[1]);
-                if (day2 - day1 - 1 < min_days_btwn_flights) {
-                    return false;
-                }
-                // int days = day2-day1-1;
-                // System.out.println("We have day2-day1-1 as " + days);
+            int num_days = num_dates_between(first_flight.depDate, second_flight.depDate);
+            if (num_days  < min_days_btwn_flights) {
+                return false;
             }
         }
         return true;

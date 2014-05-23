@@ -1,9 +1,10 @@
 /*
- * Flight class
- * Has comparable so that it's easy to order flights based on departure date
+ * Flight class. Has comparable so that it's easy to order flights based on departure date
+ * (c) 2014 by Daniel Seita (and Lucky Zhang)
  */
 
 import java.util.*;
+import java.text.*;
 
 public class Flight implements Comparable<Flight> {
 
@@ -27,18 +28,17 @@ public class Flight implements Comparable<Flight> {
         return from + "->" + to + " on " + depDate + ", " + (price != -1 ? "$" + price : "price unknown");
     }
 
-    // Order flights based on the departure date. Greater than means it comes later in the ordering.
     public int compareTo(Flight f) {
-        String otherDepDate = f.depDate;
-        String[] ourDate = depDate.split("/");
-        String[] otherDate = otherDepDate.split("/");
-        if (!ourDate[2].equals(otherDate[2])) {
-            return ourDate[2].compareTo(otherDate[2]);
-        } else if (!ourDate[0].equals(otherDate[0])) {
-            return ourDate[0].compareTo(otherDate[0]);
-        } else {
-            return ourDate[1].compareTo(otherDate[1]);
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        Date thisDate = new Date();
+        Date otherDate = new Date();
+        try {
+            thisDate = sdf.parse(depDate);
+            otherDate = sdf.parse(f.depDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+        return thisDate.compareTo(otherDate);
     }
 
 }
