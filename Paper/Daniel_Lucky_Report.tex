@@ -179,7 +179,7 @@ To start formulating the problem, we make it concrete what we mean by cities, da
 
 \begin{itemize}[noitemsep]
     \item We have $n$ cities to reach; we index cities by $i$ or $j$, where $i, j \in \{1, 2, \ldots, n\}$.
-    \item We have $t$ consecutive days when we can travel: $t \in \{1, 2, \ldots, m\}$.
+    \item We have $m$ consecutive days when we can travel; we index days by $t$, where $t \in \{1, 2, \ldots, m\}$.
     \item The minimum cost for traveling from city $i$ to $j$ on day $t$ is $c_{ijt}$.
 \end{itemize}
 
@@ -317,7 +317,7 @@ brevity we elide additional technical details of the algorithm and refer the rea
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{servers}}
-\caption{This is our ideal machine setup.}
+\caption{This is our machine setup.}
 \label{fig:machines}
 \end{center}
 \vskip -0.2in
@@ -367,9 +367,9 @@ such as~\cite{Blaze:2001:RTM:380171.380186}.)
 
 After parsing the input, the master server has two important tasks. The first is that it needs to obtain the cheapest flight that goes from cities $i$
 to $j$ on day $t$ for all $n(n-1)m$ possible combinations. It accomplishes this by calling any idle slave servers to look up a single price, which
-spawns a new thread. Thus, with $k$ total flights and $\ell$ slaves, we expect each to contribute $k/\ell$ flight prices to the master. This is shown
-in Figure~\ref{fig:machines} as \texttt{2} and \texttt{4}. (That we only have two calls to each slave is just for simplicity, since there can be an
-arbitrary amount of them.)
+spawns a new thread. Thus, with $k$ total flights and $\ell$ slaves, we expect each slave to contribute $k/\ell$ flight prices to the master. This is
+shown in Figure~\ref{fig:machines} as \texttt{2} and \texttt{4}. (That we only have two calls to each slave is just for simplicity, since there can be
+an arbitrary amount of them.)
 
 Once the master server has all the prices for the flights, it combines this information with the rest of the user request into inputs suitable for
 binary integer programming. Computing the cost vector is easy; the challenging part is making sure that the constraints are well-defined. Once the
@@ -472,11 +472,11 @@ will be the limiting factor of our system.
 
 \subsection{Multi-Node Experiments}\label{sec:distributed_experiment}
 
-The goal here is to understand the impact of adding in multiple crawler servers on the flight time. Ideally, the runtime of flight lookup should
-decrease with respect to the number of threads, but each thread added results in a relatively smaller decrease in time (i.e., diminishing returns). We
-can also gain insight about the threshold when Balas' algorithm starts becoming more expensive than flight checking by comparing the runtime of the
-same request on different number of crawler servers. And if Balas' algorithm is not the limiting factor of the algorithm, we can always add more
-threads.
+The goal here is to understand the impact of adding in multiple crawler servers on the price lookup time. Ideally, its runtime should decrease with
+respect to the number of threads, but each thread added should result in a relatively smaller decrease in time (i.e., the classic case of diminishing
+returns). We also gain insight about the threshold when Balas' algorithm starts becoming more expensive than flight checking by comparing the runtime
+of the same request on different numbers of crawler servers. And if Balas' algorithm is not the limiting factor of the algorithm, we can always add
+more threads.
 
 Table~\ref{tab:multiple-node} shows our results (times are in mintes:seconds format), which confirm our hypothesis.  Thus, for even moderately large
 inputs, flight checking can be done relatively quickly, and extra effort should be devoted towards distributing Balas' algorithm, or finding another
@@ -495,7 +495,7 @@ way to solve integer programming.
 Input & Threads & F Time \\
 \hline
 \abovespace
-3C 12D & 1 & TODO \\
+3C 12D & 1 & 09:53 \\
 3C 12D & 2 & 05:01 \\
 3C 12D & 3 & 03:20 \\
 3C 12D & 4 & 02:38 \\
@@ -552,7 +552,7 @@ A more problematic situation with our ``one flight'' a day limitation is that it
 cities. For example, if we wanted to travel to Chicago, Atlanta, and Denver in some order over the span of six days, the cheapest route may involve
 going from Chicago to Atlanta on the third day, and then going from Atlanta to Denver, \emph{also} on the third day.
 
-Another limitation is that we only view time in terms of absolute days. If we look up a flight on day $t$, an overnight flights that starts on day $t$
+Another limitation is that we only view time in terms of absolute days. If we look up a flight on day $t$, an overnight flight that starts on day $t$
 may be selected, and we the code may also assign a flight to start on day $t+1$, raising some logistical issues. Even if we ignore overnight flights,
 we could have a flight landing at the very end of day $t$ and the next flight departing at the beginning of day $t+1$ with insufficient layover time.
 We do not have ways of facing this limitation in our system, but one possible idea is to treat time in one-hour units, rather than 24-hour units,
@@ -561,13 +561,13 @@ giving us a finer grain of control. It is unclear how much this would complicate
 \subsection{One Ticket, Multiple Flights}
 
 One issue related to optimality is that even if we search for all possible direct flight combinations and find the cheapest collective route, it may
-still not be the best possible route. Consider a hypothetical situation where a user wants to travel to Boston, Chicago, London, and Beijing.
-Analyzing all pairwise combinations might result in the following route: Chicago to Boston, Boston to London, London to Beijing, then Beijing to
-Chicago.  Assume for simplicity that each flight costs \$500. But there might exist a flight from Chicago to London that, according to the Matrix
-Airfare Search, costs \$750, \emph{but makes a stop at Boston}, despite how the cheapest direct flight from Chicago to Boston costs \$500 (and
-similarly for Boston and London). In other words, a better route would be Chicago to London (making a stop at Boston), then London to Beijing, then
-Beijing to Chicago, which would cost \$1750, compared to the \$2000 route that our solution would provide. To resolve this, we are looking to expand
-our crawler so that it can detect the stopgap cities that are part of a single flight.
+still not be the best possible. Consider a hypothetical situation where a user wants to travel to Boston, Chicago, London, and Beijing.  Analyzing all
+pairwise combinations might result in the following route: Chicago to Boston, Boston to London, London to Beijing, then Beijing to Chicago.  Assume
+for simplicity that each flight costs \$500. But one might be able to buy a \emph{single} ticket for \emph{two} flights, say Chicago to Boston and
+then (perhaps a few days later) from Boston to London. If this combined ticket costs \$750, then it is actually cheaper than buying the flights from
+Chicago to Boston and Boston to London separately. In other words, a better route would be Chicago to London (making a valid stop at Boston), then
+London to Beijing, then Beijing to Chicago, which would cost \$1750, compared to the \$2000 route that our solution would provide. To resolve this, we
+are looking to expand our crawler so that it can detect tickets corresponding to multiple flights.
 
 \subsection{Web Crawler Issues}
 
@@ -639,8 +639,8 @@ We deemed the first eight pages of this document sufficient for presenting our r
 
 The Simplex method can usually solve linear programming problems quickly. Unfortunately, there is no efficient analogue of the Simplex method (or
 similar algorithms) to the case when all variables must be integers. To make matters worse, a problem can have optimal integral and linear solutions,
-but they may be extraordinarily different, so it is not sufficient to simply round, truncate, or investigate the ``relative area'' surrounding a
-linear programming solution. The following problem provides a concrete example and is based on the presentation of~\cite{stevenmiller}.
+but they may be extraordinarily different, so it is not sufficient to simply round, truncate, or investigate the ``relative area in the plane''
+surrounding a linear programming solution. The following problem provides a concrete example and is based on the presentation of~\cite{stevenmiller}.
 
 \begin{prob}\label{prob:bin_vs_int}
 [The Knapsack Problem] Imagine we have a knapsack that can hold at most 100 kilograms. There are three items we can pack, each of which is worth some
@@ -696,8 +696,9 @@ corresponding costs be $x_1, \ldots, x_n$ and $c_1, \ldots, c_n$, respectively, 
 \end{itemize}
 
 Incidentally, our code to solve Balas' algorithm \emph{does} include checking and conversion capability, which is necessary for some constraints, such
-as the one requiring at most one flight per day. We also order variables by cost, so any final vector of, say, $[1,0,0,1,0,0,1]$ means that we pick
-the three flights that correspond to the cheapest, fourth cheapest, and seventh cheapest (i.e., the most expensive one).
+as the one requiring at most one flight per day since it is a less than or equal bound. We also order variables by cost, so any final vector of, say,
+$[1,0,0,1,0,0,1]$ means that we pick the three flights that correspond to the cheapest, fourth cheapest, and seventh cheapest (i.e., the most
+expensive one).
 
 While it may seem like requiring the input to be in canonical form is a heavy restriction, in fact it is relatively simple to do the conversion.
 Ordering the constraints should not be challenging in an implementation, given enough debugging to ensure that indices and other aspects line up
@@ -706,16 +707,18 @@ variables is required, with transforming $x_i$ into $1-x_i'$. Finally, to handle
 inequalities, similar to how we can convert $x=2$ to the equivalent condition of $x\le2$ and $x\ge2$ (and then we would subsequently change the first
 one to be $-x\ge2$).
 
-As we mention in the text, the idea of Balas' algorithm is that we want to assign as many variables to zero as possible since we know that
-coefficients are non-negative. In almost all cases, if we tried to do this at the start, we would violate one of the constraints. So the next step is
-to try and set the \emph{cheapest} variables to be one, because if we can satisfy the constraints, we prefer to do it with the cheapest variables
-possible.
+As we mention in the main part of this paper, the idea of Balas' algorithm is that we want to assign as many variables to zero as possible since we
+know that coefficients are non-negative. In almost all cases, if we tried to do this at the start, we would violate one of the constraints. So the
+next step is to try and set the \emph{cheapest} variables to be one, because if we can satisfy the constraints, we prefer to do it by setting the
+lower-cost variables to be ones.
 
 Our implementation follows a depth-first search algorithm to enumerate all possible solutions. In other words, we form a rooted tree where a path
 corresponds to some assignment of variables, and each node has two successors in the tree, corresponding to a selection of 0 or a selection of 1 for
 the current variable, where the ``current'' variable is determined by the level of the tree (i.e., the root node corresponds to an empty path
-$[\ldots]$\footnote{We use the ellipses as shorthand for ``the rest of the variables are unknown.''}, its two successors correspond to the paths of
-$[1, \ldots]$ and $[0, \ldots]$, and so on).
+$[\ldots]$\footnote{We use the ellipses as shorthand for ``the rest of the variables are unknown'' \emph{if} they correspond to variables happening
+after any assignment of a variable. Thus, $[\ldots]$ means all variables are unknown, but $[0,\ldots]$ means that only the first is known and the rest
+are unknown. To be concrete, $[x_1, \ldots, x_j, \ldots]$ means that the first $j$ variables are \emph{known}, and the remaining ones after $j$ are
+\emph{unknown}.}, its two successors correspond to the paths of $[1, \ldots]$ and $[0, \ldots]$, and so on).
 
 But a word of caution --- if there are four cities and twenty days to travel, that means we have $4 \cdot 3 \cdot 10 = 120$ total variables, which
 means listing all solutions would mean we have $2^{120}$ leaf nodes. This is clearly impractical, and the hope is that Balas' algorithm can avoid
@@ -729,29 +732,29 @@ consider two cases for the value of $x_j$:
 
 \begin{itemize}[noitemsep]
     \item Suppose $x_j = 1$. Then we need to check if the current path so far can lead to a best-cost solution. If we check the constraints, and find
-    that the assignment $\mathcal{X} = [x_1,x_2,\ldots,x_j=1, 0, 0, \ldots, 0]$ works (i.e., at least the last $n-j$ variables are zero), then we
-    compute the cost of $\mathcal{X}$ and compare it to the current best cost known. If $\mathcal{X}$ is better than the current best cost, then we
-    save its path and cost. Furthermore, \emph{there is no need to continue in this DFS branch}, because any further path must start with the first
-    $j$ assignments in $\mathcal{X}$, and any extra one is going to force a subsequent solution $\mathcal{X}'$ to be costlier than $\mathcal{X}$. This
-    is the power of knowing that the costs are ordered, and that each variable is binary. Without either of those assumptions, Balas' algorithm would
-    not work!
+    that the assignment $\mathcal{X} = [x_1,x_2,\ldots,x_j=1, 0, 0, \ldots, 0]$ is feasible (i.e., the last $n-j$ variables are zero), then we compute
+    the cost of $\mathcal{X}$ (denoted $c(\mathcal{X})$) and compare it to the current best cost known. If $c(\mathcal{X})$ is cheaper, then we save
+    $c(\mathcal{X})$ as the new best cost, and we also save $\mathcal{X}$ as the best path. Furthermore, \emph{there is no need to continue in this
+    DFS branch}, because any further path must start with the first $j$ assignments in $\mathcal{X}$, and any extra one is going to force a subsequent
+    solution $\mathcal{X}'$ to have cost greater than $c(\mathcal{X})$. This is the power of knowing that the costs are ordered, and that each
+    variable is binary. Without either of these assumptions, Balas' algorithm would not work!
     \item Now suppose $x_j = 0$. Here, it is important to assume that the assignment $\mathcal{X} = [x_1,x_2,\ldots,x_j=0,0,0,\ldots, 0]$ is
-    \emph{infeasible}. The reasoning is that if it were feasible, then we would not be in this node at all because then the previous node would have
+    \emph{infeasible}. The reason is that if it were feasible, then we would not be in this node at all because then the previous node would have
     already been feasible. Since we are assuming best-case costs each time, this means that the DFS would not have continued after the previous node
     was expanded. Thus, we must assume $\mathcal{X}$ is infeasible. Then we set the \emph{next} variable $x_{j+1} = 1$, and then after that, check to
-    see if the solution $\mathcal{X}' = [x_1,x_2,\ldots,x_j=0,x_{j+1}=1,0,0,\ldots,0]$ is feasible. If it is, there is no need to expand this DFS
-    path any further.
+    see if the solution $\mathcal{X}' = [x_1,x_2,\ldots,x_j=0,x_{j+1}=1,0,0,\ldots,0]$ is feasible. If it is, there is no need to expand this DFS path
+    any further. If not, we must continue expanding it.
 \end{itemize}
 
 As we will soon show, it is also important to be able to prune away impossible paths so that we do not need to do this ``cost look-ahead'' every time.
 
 \subsection{Pruning}
 
-We might have feasible solutions, but it is also important to be able to stop checking a DFS path if we can tell that its best-case flight route price
-is always going to be more expensive than the current best cost. Given a current path assignment $\mathcal{X} = [x_1,\ldots, x_j, \ldots]$, the way we
-do this is by analyzing each constraint one by one. The constraints are all of the form $\sum_{j=1}^{n} a_{ij}x_j \ge b_i$ for $i \in
-\{1,2,\ldots,m\}$. So the key is to determine the \emph{largest possible} value of the left hand side. If that value is still less than $b_i$, we can
-avoid expanding that path any further.
+We might have feasible solutions, but it is also important stop checking a DFS path if we can tell that its best-case flight route price is always
+going to be more expensive than the current best cost. Given a current path assignment $\mathcal{X} = [x_1,\ldots, x_j, \ldots]$, the way we do this
+is by analyzing each constraint one by one. The constraints are all of the form $\sum_{j=1}^{n} a_{ij}x_j \ge b_i$ for $i \in \{1,2,\ldots,m\}$. So
+the key is to determine the \emph{largest possible} value of the left hand side. If that value is still less than $b_i$, we can avoid expanding that
+path any further because there is no way that it will ever satisfy this constraint.
 
 To make the left hand side as large as possible, set each \emph{unknown} variable $x_i$ to be zero if its corresponding coefficient is negative, and
 one if otherwise. For example, if we had the assignment $[x_1=1, x_2=0, x_3, x_4]$ (where the last two are unknown) and a constraint $x_1 - 5x_2 +
@@ -764,14 +767,14 @@ Our implementation of the algorithm runs an iterative version of depth-first sea
 the root to itself. We debated between depth-first search versus best-first search, but decided to do the former since best-first search would give
 priority early to paths that start with almost all zeros (and we want paths that start with a few ones and end with lots of zeros).
 
-An interesting detail about our code is that we actually view each node as having three successors in the tree. Given a current path $\mathcal{X} =
-[x_1, \ldots, x_j]$, we consider the three paths that result from appending $[1],[0,1],$ or $[0,0]$ to $\mathcal{X}$. We only run the cost look-ahead
-procedure (described in Appendix~\ref{app:balas_lookahead}) on the first two, because adding in a bunch of zeros to an infeasible assignment
-$\mathcal{X}$ cannot make it feasible. Remember, the whole reason why we are still expanding $\mathcal{X}$ is because best-case extensions of it
-(i.e., adding all zeroes, possibly after adding in a one to start) is not feasible! Our original implementation simply had two children, which were
-formed from appending $[0]$ and $[1]$. This was inefficient as it caused us to repeat certain trials. After making each node expand three children, we
-noticed that the depth-first search was expanding a little over \emph{half} as many nodes as before! Any small improvement we can make to this
-algorithm is imperative, given its general exponential-time complexity with respect to the number of cities and days.
+An interesting detail about our code is that we actually view each node as having \emph{three} successors in the tree. Given a current path
+$\mathcal{X} = [x_1, \ldots, x_j]$, we consider the three paths that result from appending $[1],[0,1],$ or $[0,0]$ to $\mathcal{X}$. We only run the
+cost look-ahead procedure (described in Appendix~\ref{app:balas_lookahead}) on the first two, because adding in a bunch of zeros to an infeasible
+assignment $\mathcal{X}$ cannot make it feasible. Remember, the whole reason why we are still expanding $\mathcal{X}$ is because best-case extensions
+of it (i.e., adding all zeroes, possibly after adding in a one to start) is not feasible! Our original implementation simply had two children, which
+were formed from appending $[0]$ and $[1]$. This was inefficient as it caused us to repeat certain trials. After making each node expand three
+children, we noticed that the depth-first search was expanding a little over \emph{half} as many nodes as before! Any small improvement we can make to
+this algorithm is imperative, given its general exponential-time complexity with respect to the number of cities and days.
 
 
 
@@ -790,10 +793,10 @@ algorithm is imperative, given its general exponential-time complexity with resp
 
 In this section, we describe an in-depth demonstration of our system in action on one machine. The goal is to see how varying the parameters causes
 the solution to change (if it does), and to see how factors such as pruning and look-aheads affect the speed of our depth-first search. Be aware,
-though, that there is always a risk of experimenting with real flight data, because prices can change at any time\footnote{In fact, a week before
-finishing this paper, we ran an experiment in which the cost of one flight decreased by \$11 in between our trials, which was why we got such
+though, that there is always a risk of experimenting with real flight data, because \emph{prices can change at any time}\footnote{In fact, a week
+before finishing this paper, we ran an experiment in which the cost of one flight decreased by \$11 in between our trials, which was why we got such
 surprising results that day.}. To mitigate this risk, we run these experiments back-to-back. We also decided to use the busiest American
-airports~\footnote{\url{http://en.wikipedia.org/wiki/List\_of\_the\_busiest\_airports\_in\_the\_United\_States}} in our input to avoid any potential
+airports\footnote{\url{http://en.wikipedia.org/wiki/List\_of\_the\_busiest\_airports\_in\_the\_United\_States}} in our input to avoid any potential
 complications with missing flights on certain days. (Future work should improve our code's failure capabilities.)
 
 Specifically, we run our flight scheduler code with the following requests. First, we have the ones from Sections~\ref{app:first_flight_request}
